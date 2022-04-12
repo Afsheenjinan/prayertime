@@ -22,18 +22,14 @@ class _HomescreenState extends State<Homescreen> {
     'Maghrib',
     'Isha'
   ];
+  var width;
+  var height;
 
   @override
   Widget build(BuildContext context) {
-    // print(prayertimesdata['Fajr']?.hourAngle);
-    // print(prayertimesdata['Imsak']?.time);
-    // print(prayertimesdata['Maghrib']?.hourAngle);
-    // print(prayertimesdata['Fajr']?.timeOfDay);
-    // print(prayertimesdata['Maghrib']?.hour12);
-    // print(prayertimesdata['Maghrib']?.hour24);
-    // print(prayertimesdata['Fajr']?.icon);
-    // print(prayertimesdata['Fajr']?.icon);
-
+    for (var item in prayerList) {
+      print(prayertimesdata[item]!.time);
+    }
     return SafeArea(
       child: Scaffold(
         // appBar: AppBar(
@@ -41,6 +37,61 @@ class _HomescreenState extends State<Homescreen> {
         // ),
         body: Column(
           children: [
+            Stack(
+              children: [
+                Container(
+                  height: 100,
+                  // width: 200,
+                  decoration: BoxDecoration(
+                    borderRadius: const BorderRadius.all(Radius.circular(5)),
+                    color: Colors.white,
+                    gradient: SweepGradient(
+                      // startAngle: math.pi / 2,
+                      // endAngle: math.pi * 2,
+                      colors: [
+                        Colors.black,
+                        Colors.red,
+                        Colors.yellow.shade50.withOpacity(0.75),
+                        Colors.yellow.shade50,
+                        Colors.yellow.shade50.withOpacity(0.75),
+                        Colors.red,
+                        Colors.black,
+                      ],
+                      // center: Alignment.bottomCenter,
+                      stops: [
+                        (prayertimesdata['Sunrise']!.time) - 0.03,
+                        (prayertimesdata['Sunrise']!.time) - 0.015,
+                        (prayertimesdata['Sunrise']!.time),
+                        (prayertimesdata['Luhar']!.time),
+                        (prayertimesdata['Sunset']!.time),
+                        (prayertimesdata['Sunset']!.time) + 0.015,
+                        (prayertimesdata['Sunset']!.time) + 0.03,
+                      ],
+                      transform: const GradientRotation(math.pi / 2),
+                    ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.grey.withOpacity(0.5),
+                        spreadRadius: 0,
+                        blurRadius: 5,
+                        // offset: const Offset(5, 3),
+                      )
+                    ],
+                  ),
+                  margin:
+                      const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                  padding: const EdgeInsets.all(8),
+                ),
+                Positioned(
+                  top: (today.hour / 24) * 100,
+                  left: (today.hour / 24) * 200,
+                  child: Sun(),
+                ),
+              ],
+            ),
+            const SizedBox(
+              height: 10,
+            ),
             Expanded(
               child: ListView.builder(
                 itemCount: prayerList.length,
@@ -48,61 +99,6 @@ class _HomescreenState extends State<Homescreen> {
                   return populateContainers(index);
                 },
               ),
-            ),
-            // Stack(
-            //   children: [
-            //     Container(
-            //       height: 100,
-            //       // width: 200,
-            //       decoration: BoxDecoration(
-            //         borderRadius: const BorderRadius.all(Radius.circular(5)),
-            //         color: Colors.white,
-            //         gradient: SweepGradient(
-            //           // startAngle: math.pi / 2,
-            //           // endAngle: math.pi * 2,
-            //           colors: [
-            //             Colors.black,
-            //             Colors.red,
-            //             Colors.yellow.shade50,
-            //             Colors.yellow.shade50,
-            //             Colors.yellow.shade50,
-            //             Colors.red,
-            //             Colors.black,
-            //           ],
-            //           // center: Alignment.bottomCenter,
-            //           stops: [
-            //             (prayerTimes['Fajr']! + 0.5),
-            //             (prayerTimes['Sunrise']! + 0.5),
-            //             0.25,
-            //             (prayerTimes['Luhar']! + 0.5),
-            //             0.75,
-            //             (prayerTimes['Maghrib']! + 0.5),
-            //             (prayerTimes['Isha']! + 0.5),
-            //           ],
-            //           transform: const GradientRotation(math.pi / 2),
-            //         ),
-            //         boxShadow: [
-            //           BoxShadow(
-            //             color: Colors.grey.withOpacity(0.5),
-            //             spreadRadius: 0,
-            //             blurRadius: 5,
-            //             // offset: const Offset(5, 3),
-            //           )
-            //         ],
-            //       ),
-            //       margin:
-            //           const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-            //       padding: const EdgeInsets.all(8),
-            //     ),
-            //     const Positioned(
-            //       top: 16,
-            //       left: 200 / 2,
-            //       child: Sun(),
-            //     ),
-            //   ],
-            // ),
-            const SizedBox(
-              height: 10,
             ),
           ],
         ),
