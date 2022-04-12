@@ -27,6 +27,9 @@ class _HomescreenState extends State<Homescreen> {
 
   @override
   Widget build(BuildContext context) {
+    width = MediaQuery.of(context).size.width;
+    height = MediaQuery.of(context).size.height;
+    print(height);
     for (var item in prayerList) {
       print(prayertimesdata[item]!.time);
     }
@@ -82,13 +85,18 @@ class _HomescreenState extends State<Homescreen> {
                       const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
                   padding: const EdgeInsets.all(8),
                 ),
-                Positioned(
-                  top: (today.hour / 24) * 100,
-                  left: (today.hour / 24) * 200,
+                const Positioned(
+                  // top: (24 + today.minute / 60) / 24 * (100 - 16) - 20,
+                  top: 24 / 24 * (100 - 16) - 20,
+
+                  left: 24 / 24 * 232 - 16,
+                  // left: (today.hour + today.minute / 60) / 24 * 232 - 16,
+                  // left: 24 / 24 * (width - 16) - 20,
                   child: Sun(),
                 ),
               ],
             ),
+            Text('${today.hour}:${today.minute}'),
             const SizedBox(
               height: 10,
             ),
