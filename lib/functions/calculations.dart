@@ -1,12 +1,7 @@
 // ignore_for_file: non_constant_identifier_names
 import 'package:flutter/material.dart';
-import 'package:prayertime/functions/functions.dart';
+import 'functions.dart';
 import '../data/data.dart';
-
-// import 'dart:math' as math;
-// TimeOfDay now = TimeOfDay.now();
-DateTime dt = DateTime.now();
-String timeFormat = '24h';
 
 class Data {
   double? hourAngle; // hourangle
@@ -107,7 +102,6 @@ double? calculateHourAngle(String prayerName) {
         break;
     }
 
-    // prayerTimes[prayerName] = hourAngle;
     prayerTimes[prayerName]?.hourAngle = hourAngle;
     return hourAngle;
   }
