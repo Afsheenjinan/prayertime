@@ -27,18 +27,20 @@ Maghrib	Sunset: when the disc of the sun has gone below the horizon
 
 */
 
-Map methods = {
+import 'package:flutter/material.dart';
+
+Map<String, dynamic> methods = {
   "MWL": {
     "title": "Muslim World League",
-    "angle": {"Fajr": 18, "Isha": 17},
+    "angle": {"Fajr": 18.0, "Isha": 17.0},
   },
   "ISNA": {
     "title": "Islamic Society of North America",
-    "angle": {"Fajr": 15, "Isha": 15},
+    "angle": {"Fajr": 15.0, "Isha": 15.0},
   },
   "France": {
     "title": "Union of Islamic Orgs of France",
-    "angle": {"Fajr": 12, "Isha": 12},
+    "angle": {"Fajr": 12.0, "Isha": 12.0},
   },
   "Egypt": {
     "title": "Egyptian General Authority of Survey",
@@ -50,18 +52,30 @@ Map methods = {
   },
   "Karachi": {
     "title": "University of Islamic Sciences, Karachi",
-    "angle": {"Fajr": 18, "Isha": 18},
+    "angle": {"Fajr": 18.0, "Isha": 18.0},
   },
   "Singapur": {
     "title": "Majlis Ugama Islam Singapura",
-    "angle": {"Fajr": 20, "Isha": 18},
+    "angle": {"Fajr": 20.0, "Isha": 18.0},
   },
   "Jafari": {
     "title": "Shia Ithna-Ashari, Leva Inst., Qum",
-    "angle": {"Fajr": 16, "Isha": 14},
+    "angle": {"Fajr": 16.0, "Isha": 14.0},
   },
   "Tehran": {
     "title": "Institute of Geophysics, University of Tehran",
-    "angle": {"Fajr": 17.7, "Isha": 14},
+    "angle": {"Fajr": 17.7, "Isha": 14.0},
   },
 };
+
+class Data {
+  double? hourAngle; // hourangle
+  late TimeOfDay timeOfDay; // timeOfDay
+  late String string; // time in string
+  late double time; //hourAngle + noon
+  final IconData icon;
+  late String hour12;
+  late String hour24;
+
+  Data({required this.icon});
+}
