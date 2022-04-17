@@ -12,8 +12,6 @@ class _SecondPageState extends State<SecondPage> {
   bool isTransliterationChecked = true;
   bool isTranslationChecked = true;
 
-  String dropdownValue = 'One';
-
   @override
   Widget build(BuildContext context) {
     return Column(
@@ -88,7 +86,7 @@ class _SecondPageState extends State<SecondPage> {
                                 const SizedBox(height: 10),
                               ],
                             )
-                          : SizedBox.shrink(),
+                          : const SizedBox.shrink(),
                       isTranslationChecked
                           ? Column(
                               children: [
@@ -102,7 +100,7 @@ class _SecondPageState extends State<SecondPage> {
                                 const SizedBox(height: 10),
                               ],
                             )
-                          : SizedBox.shrink(),
+                          : const SizedBox.shrink(),
                       Text(
                         '[ ${duaList[index].verse} ]',
                         textAlign: TextAlign.right,
@@ -120,28 +118,6 @@ class _SecondPageState extends State<SecondPage> {
             },
           ),
         ),
-        DropdownButton<String>(
-          value: dropdownValue,
-          icon: const Icon(Icons.arrow_downward),
-          elevation: 16,
-          style: const TextStyle(color: Colors.deepPurple),
-          underline: Container(
-            height: 2,
-            color: Colors.deepPurpleAccent,
-          ),
-          onChanged: (String? string) {
-            setState(() {
-              dropdownValue = string!;
-            });
-          },
-          items: <String>['One', 'Two', 'Free', 'Four']
-              .map<DropdownMenuItem<String>>((String value) {
-            return DropdownMenuItem<String>(
-              value: value,
-              child: Text(value),
-            );
-          }).toList(),
-        )
       ],
     );
   }

@@ -1,16 +1,16 @@
 /*
-Calculation Method	                            |  Fajr Angle	|   ʿIshā’ Angle   |    Region
-------------------------------------------------|---------------|------------------|--------------
-Muslim World League                     [MWL]   |     18°       |       17°        |    Europe, Far East, parts of US
-Islamic Society of North America        [ISNA]	|     15°	    |       15°        |    North America (US and Canada)
-Union of Islamic Orgs of France         [France]	|     12°	    |       12°        |    France
-Egyptian General Authority of Survey	[Egypt]  |     19.5°	    |       17.5°      |    Africa, Syria, Lebanon, Malaysia   
-Umm al-Qura University, Makkah          [Makkah]|     18.5°	    |       90 min     |    Arabian Peninsula
-University of Islamic Sciences, Karachi [Karachi]   |     18°	    |       18°        |    Pakistan, Afganistan, Bangladesh, India
-Majlis Ugama Islam Singapura	        [Singapur]  |     20°	    |       18°        |    Singapur
+Calculation Method	                              |  Fajr Angle	|   ʿIshā’ Angle   |    Region
+--------------------------------------------------|-------------|------------------|--------------
+Muslim World League                     [MWL]     |     18°     |       17°        |    Europe, Far East, parts of US
+Islamic Society of North America        [ISNA]	  |     15°	    |       15°        |    North America (US and Canada)
+Union of Islamic Orgs of France         [France]  |     12°	    |       12°        |    France
+Egyptian General Authority of Survey	  [Egypt]   |     19.5°	  |       17.5°      |    Africa, Syria, Lebanon, Malaysia   
+Umm al-Qura University, Makkah          [Makkah]  |     18.5°	  |       90 min     |    Arabian Peninsula
+University of Islamic Sciences, Karachi [Karachi] |     18°	    |       18°        |    Pakistan, Afganistan, Bangladesh, India
+Majlis Ugama Islam Singapura	          [Singapur]|     20°	    |       18°        |    Singapur
 Shia Ithna-Ashari, Leva Inst., Qum	    [Jafari]  |     16°	    |       14°        |    Some Shia communities worldwide
-Institute of Geophysics,                        |               |                  |              
-                University of Tehran    [Tehran]	|     17.7      |       14         |    Some Shia communities
+Institute of Geophysics,
+                University of Tehran    [Tehran]	|     17.7    |       14         |    Some Shia communities
 
 */
 
@@ -70,12 +70,12 @@ Map<String, dynamic> methods = {
 
 class Data {
   double? hourAngle; // hourangle
-  late TimeOfDay timeOfDay; // timeOfDay
-  late String string; // time in string
-  late double time; //hourAngle + noon
-  final IconData icon;
-  late String hour12;
-  late String hour24;
+  TimeOfDay? timeOfDay; // timeOfDay
+  String? string; // time in string
+  double? time; //hourAngle + noon
+  IconData? icon;
+  String? hour12;
+  String? hour24;
 
   Data({required this.icon});
 }
