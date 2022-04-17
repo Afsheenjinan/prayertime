@@ -16,7 +16,8 @@ class FirstPage extends StatefulWidget {
 
 class _FirstPageState extends State<FirstPage> {
   String defaultMethod = "Makkah";
-  String school = "Shafi'i"; // Shafi'i, Maliki, Ja'fari, and Hanbali
+  String school =
+      "Standard - Shafi'i | Maliki | Ja'fari"; // Shafi'i, Maliki, Ja'fari, and Hanbali
   late Timer _timer;
   late DateTime _now = DateTime.now();
   late double _nowHourAngle;
