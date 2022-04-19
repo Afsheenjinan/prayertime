@@ -1,6 +1,11 @@
 import 'package:flutter/material.dart';
-import '../functions/calculations.dart';
-import 'dart:math' as math;
+import 'package:geolocator/geolocator.dart';
+import 'package:geocoding/geocoding.dart';
+import 'package:prayertime/screen/qibla_page.dart';
+
+import 'prayertimes_page.dart';
+// import 'qibla_page.dart';
+import 'dua_page.dart';
 
 class Homescreen extends StatefulWidget {
   const Homescreen({
@@ -12,166 +17,131 @@ class Homescreen extends StatefulWidget {
 }
 
 class _HomescreenState extends State<Homescreen> {
-  final prayerNames = prayerTimes.keys.toList();
-  final icondata = icons.values.toList();
+  int _currentIndex = 0;
+  List? pages;
+
+  double? _latitude;
+  double? _longitude;
+  String _address = '';
+
+  double distanceInMeters = 0.0;
+  double bearingInAngle = 0.0;
+
   @override
-  Widget build(BuildContext context) {
-    // print(dt.timeZoneOffset.inHours);
-    var now = const TimeOfDay(hour: 9, minute: 5);
-    // print(now.period.name);
-
-    return SafeArea(
-      child: Scaffold(
-        // appBar: AppBar(
-        //   title: const Text("Prayer Times"),
-        // ),
-        body: Column(
-          children: [
-            Stack(
-              children: [
-                Container(
-                  height: 100,
-                  // width: 200,
-                  decoration: BoxDecoration(
-                    borderRadius: const BorderRadius.all(Radius.circular(5)),
-                    color: Colors.white,
-                    gradient: SweepGradient(
-                      // startAngle: math.pi / 2,
-                      // endAngle: math.pi * 2,
-                      colors: [
-                        Colors.black,
-                        Colors.red,
-                        Colors.orange.shade50,
-                        Colors.yellow.shade100,
-                        Colors.orange.shade50,
-                        Colors.red,
-                        Colors.black,
-                      ],
-                      // center: Alignment.bottomCenter,
-                      stops: [
-                        (prayerTimes['Fajr']! + 0.5),
-                        (prayerTimes['Sunrise']! + 0.5),
-                        0.25,
-                        (prayerTimes['Luhar']! + 0.5),
-                        0.75,
-                        (prayerTimes['Magrib']! + 0.5),
-                        (prayerTimes['Isha']! + 0.5),
-                      ],
-                      transform: const GradientRotation(math.pi / 2),
-                    ),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.grey.withOpacity(0.5),
-                        spreadRadius: 0,
-                        blurRadius: 5,
-                        // offset: const Offset(5, 3),
-                      )
-                    ],
-                  ),
-                  margin:
-                      const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-                  padding: const EdgeInsets.all(8),
-                ),
-                const Positioned(
-                  top: 16,
-                  left: 200 / 2,
-                  child: Sun(),
-                ),
-              ],
-            ),
-            const SizedBox(
-              height: 10,
-            ),
-            Expanded(
-              child: ListView.builder(
-                itemCount: prayerNames.length,
-                itemBuilder: (BuildContext context, int index) {
-                  return populateContainers(index);
-                },
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
+  void initState() {
+    super.initState();
+    _updatePosition();
   }
 
-  populateContainers(int index) {
-    return Container(
-      decoration: BoxDecoration(
-        borderRadius: const BorderRadius.all(Radius.circular(5)),
-        color: Colors.white,
-        boxShadow: [
-          BoxShadow(
-            color: Colors.grey.withOpacity(0.5),
-            spreadRadius: 0,
-            blurRadius: 5,
-            // offset: const Offset(5, 3),
-          )
-        ],
-      ),
-      margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-      padding: const EdgeInsets.all(8),
-      child: IntrinsicHeight(
-        child: Row(
-          children: [
-            Icon(
-              Icons.access_time_rounded,
-              // color: Colors.pink,
-              // size: 24.0,
-              semanticLabel: prayerNames[index],
-            ),
-            const VerticalDivider(color: Colors.black),
-            // SizedBox(width: 20),
-            Flexible(
-              // flex: 1,
-              fit: FlexFit.tight,
-              child: Text(
-                prayerNames[index],
-              ),
-            ),
-            Icon(
-              icondata[index],
-              // color: Colors.pink,
-              // size: 24.0,
-              semanticLabel: prayerNames[index],
-            ),
-            const VerticalDivider(color: Colors.black),
-            Text(
-              // JC.toString(),
-              textify(getPrayerTime(prayerNames[index])),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
+  Future<void> _updatePosition() async {
+    // LocationData locationData = await _determinePosition();
+    Position locationData = await _determinePosition();
 
-class Sun extends StatelessWidget {
-  const Sun({
-    Key? key,
-  }) : super(key: key);
+    List<Placemark> placeMark = await placemarkFromCoordinates(
+        locationData.latitude, locationData.longitude);
+    Placemark place = placeMark[0];
+
+    setState(() {
+      _address = '${place.locality}, ${place.country}';
+      _latitude = locationData.latitude;
+      _longitude = locationData.longitude;
+    });
+  }
+
+  Future<Position> _determinePosition() async {
+    bool serviceEnabled;
+    LocationPermission permission;
+
+    // Test if location services are enabled.
+    serviceEnabled = await Geolocator.isLocationServiceEnabled();
+    if (!serviceEnabled) {
+      // Location services are not enabled don't continue
+      // accessing the position and request users of the
+      // App to enable the location services.
+      return Future.error('Location services are disabled.');
+    }
+
+    permission = await Geolocator.checkPermission();
+    if (permission == LocationPermission.denied) {
+      permission = await Geolocator.requestPermission();
+      if (permission == LocationPermission.denied) {
+        // Permissions are denied, next time you could try
+        // requesting permissions again (this is also where
+        // Android's shouldShowRequestPermissionRationale
+        // returned true. According to Android guidelines
+        // your App should show an explanatory UI now.
+        return Future.error('Location permissions are denied');
+      }
+    }
+
+    if (permission == LocationPermission.deniedForever) {
+      // Permissions are denied forever, handle appropriately.
+      return Future.error(
+          'Location permissions are permanently denied, we cannot request permissions.');
+    }
+
+    // When we reach here, permissions are granted and we can
+    // continue accessing the position of the device.
+    return await Geolocator.getCurrentPosition(
+        desiredAccuracy: LocationAccuracy.high,
+        forceAndroidLocationManager: false);
+  }
+
+  void _onItemTapped(int index) {
+    setState(() {
+      _currentIndex = index;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      height: 16,
-      width: 16,
-      decoration: BoxDecoration(
-        borderRadius: const BorderRadius.all(Radius.circular(8)),
-        color: Colors.yellow.shade500,
-        boxShadow: [
-          BoxShadow(
-            color: Colors.grey.withOpacity(0.5),
-            spreadRadius: 0,
-            blurRadius: 1,
-            // offset: const Offset(5, 3),
+    // pages = const [FirstPage(), Compass(), SecondPage()];
+    pages = [
+      PrayerTimesPage(
+          latitude: _latitude, longitude: _longitude, address: _address),
+      QiblaPage(latitude: _latitude, longitude: _longitude),
+      const DuaPage()
+    ];
+
+    return _latitude != null
+        ? SafeArea(
+            child: Scaffold(
+              body: pages![_currentIndex],
+              bottomNavigationBar: BottomNavigationBar(
+                elevation: 20,
+                items: [
+                  const BottomNavigationBarItem(
+                      icon: Icon(Icons.access_alarm_rounded),
+                      label: 'PrayerTimes'),
+                  BottomNavigationBarItem(
+                      icon: Image.asset(
+                        "assets/images/qibla_32.png",
+                      ),
+                      activeIcon: Image.asset(
+                        "assets/images/qibla_32.png",
+                        color: Colors.green.shade900,
+                      ),
+                      // icon: Icon(Icons.arrow_circle_up_sharp),
+                      label: 'Qibla'),
+                  BottomNavigationBarItem(
+                      // icon: Icon(Icons.dark_mode_outlined), label: 'Dua'),
+                      icon: Image.asset("assets/images/dua_32.png"),
+                      activeIcon: Image.asset(
+                        "assets/images/dua_32.png",
+                        color: Colors.green.shade900,
+                      ),
+                      label: 'Dua'),
+                ],
+                currentIndex: _currentIndex,
+                onTap: _onItemTapped,
+                selectedItemColor: Colors.green.shade900,
+              ),
+            ),
           )
-        ],
-      ),
-      margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-      padding: const EdgeInsets.all(8),
-    );
+        : SafeArea(
+            child: Container(
+              color: Colors.green.shade50,
+            ),
+          );
   }
 }
