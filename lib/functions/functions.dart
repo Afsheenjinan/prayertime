@@ -2,6 +2,8 @@
 
 import 'dart:math' as math;
 
+double PI = math.pi;
+
 double Julian(DateTime dateTime,
     {int hour = 0, int minute = 0, double timezone = 0}) {
   int year = dateTime.year;
@@ -30,6 +32,8 @@ double JulianCentury(julianDay) => (julianDay - 2451545) / 36525;
 
 double Degrees(rad) => rad / math.pi * 180;
 double Radians(deg) => deg / 180 * math.pi;
+
+double Sqrt(x) => math.sqrt(x);
 
 double Sin(x) => math.sin(Radians(x));
 double Cos(x) => math.cos(Radians(x));
@@ -131,3 +135,37 @@ Map<String, double> getEquationOfTime(double JC) {
     'Sun_Rt_Ascen': Sun_Rt_Ascen
   };
 }
+
+// double distanceBetween(
+//   double deviceLatitude,
+//   double deviceLongitude,
+//   double endLatitude,
+//   double endLongitude,
+// ) {
+//   double earthRadius = 6378137.0;
+//   double diffLatitudes = (endLatitude - deviceLatitude) / 2;
+//   double diffLongitudes = (endLongitude - deviceLongitude) / 2;
+
+//   var haversine = Sin(diffLatitudes) * Sin(diffLatitudes) +
+//       Cos(deviceLatitude) *
+//           Cos(endLatitude) *
+//           Sin(diffLongitudes) *
+//           Sin(diffLongitudes);
+
+//   return 2 * earthRadius * aSin(Sqrt(haversine));
+// }
+
+// double bearingBetween(
+//   double deviceLatitude,
+//   double deviceLongitude,
+//   double endLatitude,
+//   double endLongitude,
+// ) {
+//   var y = Sin(endLongitude - deviceLongitude) * Cos(endLatitude);
+//   var x = Cos(deviceLatitude) * Sin(endLatitude) -
+//       Sin(deviceLatitude) *
+//           Cos(endLatitude) *
+//           Cos(endLongitude - deviceLongitude);
+
+//   return Degrees(aTan2(y, x));
+// }

@@ -1,32 +1,3 @@
-/*
-Calculation Method	                              |  Fajr Angle	|   ʿIshā’ Angle   |    Region
---------------------------------------------------|-------------|------------------|--------------
-Muslim World League                     [MWL]     |     18°     |       17°        |    Europe, Far East, parts of US
-Islamic Society of North America        [ISNA]	  |     15°	    |       15°        |    North America (US and Canada)
-Union of Islamic Orgs of France         [France]  |     12°	    |       12°        |    France
-Egyptian General Authority of Survey	  [Egypt]   |     19.5°	  |       17.5°      |    Africa, Syria, Lebanon, Malaysia   
-Umm al-Qura University, Makkah          [Makkah]  |     18.5°	  |       90 min     |    Arabian Peninsula
-University of Islamic Sciences, Karachi [Karachi] |     18°	    |       18°        |    Pakistan, Afganistan, Bangladesh, India
-Majlis Ugama Islam Singapura	          [Singapur]|     20°	    |       18°        |    Singapur
-Shia Ithna-Ashari, Leva Inst., Qum	    [Jafari]  |     16°	    |       14°        |    Some Shia communities worldwide
-Institute of Geophysics,
-                University of Tehran    [Tehran]	|     17.7    |       14         |    Some Shia communities
-
-*/
-
-/*
-Prayer	Start Time
-------------------
-Fajr	Dawn: when a line of light first appears and begins to spread across the horizon
-Ẓuhr	After midday: when the sun has crossed its highest point and has begun to decline
-ʿAsr	When the shadow of an object, minus its shadow at noon, equals the object itself 
-        [or twice the object according to Imam Abū Ḥanīfah]
-Maghrib	Sunset: when the disc of the sun has gone below the horizon
-ʿIshā’	When the reddish glow has disappeared from the sky after sunset 
-        [or whitish glow according to Imam Abū Ḥanīfah]
-
-*/
-
 import 'package:flutter/material.dart';
 
 Map<String, dynamic> methods = {

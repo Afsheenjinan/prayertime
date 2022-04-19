@@ -1,37 +1,39 @@
 import 'dart:async';
-import 'package:geocoding/geocoding.dart' as geocoding;
 import 'package:intl/intl.dart';
 import 'package:flutter/material.dart';
-import 'package:location/location.dart';
 import 'dart:math' as math;
 import '../data/data.dart';
 import '../functions/functions.dart';
 
-class FirstPage extends StatefulWidget {
-  const FirstPage({Key? key}) : super(key: key);
+class PrayerTimesPage extends StatefulWidget {
+  const PrayerTimesPage(
+      {Key? key,
+      required this.latitude,
+      required this.longitude,
+      required this.address})
+      : super(key: key);
+  final double? latitude;
+  final double? longitude;
+  final String address;
 
   @override
-  State<FirstPage> createState() => _FirstPageState();
+  State<PrayerTimesPage> createState() => _PrayerTimesPageState();
 }
 
-class _FirstPageState extends State<FirstPage> {
-  String defaultMethod = "Makkah";
-  String school =
-      "Standard - Shafi'i | Maliki | Ja'fari"; // Shafi'i, Maliki, Ja'fari, and Hanbali
-  late Timer _timer;
-  late DateTime _now = DateTime.now();
-  late double _nowHourAngle;
+class _PrayerTimesPageState extends State<PrayerTimesPage> {
+  String defaultMethod = "MWL";
+  String asrMethod = "Standard"; // Shafi'i, Maliki, Hanbali, and Hanafi
+  Timer? _timer;
+  DateTime _now = DateTime.now();
+  double? _nowHourAngle;
   double horizontalParrallax = 34 / 60 + 16 / 60; // 0.833°
-  double? _latitude;
-  double? _longitude;
-  // double _latitudeMakka = 21.4225;
-  // double _longitudeMakka = 39.8262;
-  late Map<String, double> _solarData;
-  late double _sunDeclination;
-  late double _equationOfTime;
-  late double _timeZone;
 
-  late double _solarNoon;
+  Map<String, double>? _solarData;
+  double? _sunDeclination;
+  double? _equationOfTime;
+  double? _timeZone;
+
+  double? _solarNoon;
   Map<String, Data> prayerTimes = {
     "Imsak": Data(icon: Icons.nightlight_round),
     'Fajr': Data(icon: Icons.wb_twighlight),
@@ -56,7 +58,6 @@ class _FirstPageState extends State<FirstPage> {
   ];
 
   Map<String, Data>? prayertimesdata;
-  String _address = '';
 
   @override
   void initState() {
@@ -65,62 +66,24 @@ class _FirstPageState extends State<FirstPage> {
     _nowHourAngle = (_now.hour + _now.minute / 60) / 24;
     _timeZone = _now.timeZoneOffset.inMinutes / 60;
     _solarData = getEquationOfTime(JulianCentury(Julian(_now, hour: 12)));
-    _equationOfTime = _solarData['Equation of Time']!;
-    _sunDeclination = _solarData['Sun Declination']!;
+    _equationOfTime = _solarData?['Equation of Time'];
+    _sunDeclination = _solarData?['Sun Declination'];
     _timer =
         Timer.periodic(const Duration(seconds: 1), (Timer timer) => _getTime());
 
-    _updatePosition();
-  }
-
-  Future<void> _updatePosition() async {
-    LocationData locationData = await _determinePosition();
-    List<geocoding.Placemark> placeMark =
-        await geocoding.placemarkFromCoordinates(
-            locationData.latitude!, locationData.longitude!);
-    geocoding.Placemark place = placeMark[0];
-
     setState(() {
-      _address = '${place.locality}, ${place.country}';
-      _latitude = locationData.latitude;
-      _longitude = locationData.longitude;
-      _solarNoon = (720 - 4 * _longitude! - _equationOfTime + _timeZone * 60) /
-          (24 * 60);
+      _solarNoon =
+          (720 - 4 * widget.longitude! - _equationOfTime! + _timeZone! * 60) /
+              (24 * 60);
 
       getdata();
     });
   }
 
-  Future<LocationData> _determinePosition() async {
-    Location location = Location();
-
-    bool _serviceEnabled;
-    PermissionStatus _permissionGranted;
-
-    _serviceEnabled = await location.serviceEnabled();
-    if (!_serviceEnabled) {
-      _serviceEnabled = await location.requestService();
-      if (!_serviceEnabled) {
-        return Future.error('Location services are disabled.');
-      }
-    }
-
-    _permissionGranted = await location.hasPermission();
-    if (_permissionGranted == PermissionStatus.denied) {
-      _permissionGranted = await location.requestPermission();
-      if (_permissionGranted != PermissionStatus.granted) {
-        Future.error(
-            'Location permissions are permanently denied, we cannot request permissions.');
-      }
-    }
-
-    return await location.getLocation();
-  }
-
   @override
   void dispose() {
     super.dispose();
-    _timer.cancel();
+    _timer?.cancel();
   }
 
   void _getTime() {
@@ -131,8 +94,8 @@ class _FirstPageState extends State<FirstPage> {
   }
 
   double calculateTime(double angle) {
-    return aCos(Sin(angle) / (Cos(_latitude) * Cos(_sunDeclination)) -
-            Tan(_latitude) * Tan(_sunDeclination)) *
+    return aCos(Sin(angle) / (Cos(widget.latitude!) * Cos(_sunDeclination!)) -
+            Tan(widget.latitude!) * Tan(_sunDeclination!)) *
         (4 / (24 * 60));
   }
 
@@ -159,10 +122,10 @@ class _FirstPageState extends State<FirstPage> {
           hourAngle = 0;
           break;
         case 'Asr':
-          int shadowFacor = school != "Hanbali" ? 1 : 2;
+          int shadowFacor = asrMethod != "Hanafi" ? 1 : 2;
+          double deltaAngle = (widget.latitude! - _sunDeclination!).abs();
           hourAngle = direction *
-              calculateTime(
-                  aTan(1 / (shadowFacor + Tan(_latitude! - _sunDeclination))));
+              calculateTime(aTan(1 / (shadowFacor + Tan(deltaAngle))));
           break;
         case 'Maghrib':
           hourAngle = (defaultMethod == "Tehran"
@@ -195,7 +158,7 @@ class _FirstPageState extends State<FirstPage> {
   }
 
   getPrayerTime(String prayerName) {
-    double time = _solarNoon + calculateHourAngle(prayerName)!;
+    double time = _solarNoon! + calculateHourAngle(prayerName)!;
     time = time % 1; // if time is greater than 1 day, reset time to 0
 
     int hh = (time * 24).floor();
@@ -218,7 +181,6 @@ class _FirstPageState extends State<FirstPage> {
     for (var item in prayerTimes.keys) {
       getPrayerTime(item);
     }
-    // return prayerTimes;
   }
 
   @override
@@ -235,21 +197,21 @@ class _FirstPageState extends State<FirstPage> {
               Icons.location_on_outlined,
               size: 15,
               semanticLabel: 'Location',
-              color: _latitude == null ? Colors.white : Colors.green,
+              color: widget.latitude == null ? Colors.white : Colors.green,
             ),
             const SizedBox(
               width: 10,
             ),
-            Text(_address),
+            Text(widget.address),
           ],
         ),
         Stack(
           children: [
             SolarBackground(prayerTimes: prayerTimes),
             Positioned(
-              top: (((_nowHourAngle - 0.5).abs()) * 1.5 + 0.25) * (100 + 16) -
+              top: (((_nowHourAngle! - 0.5).abs()) * 1.5 + 0.25) * (100 + 16) -
                   16,
-              left: _nowHourAngle *
+              left: _nowHourAngle! *
                       (MediaQuery.of(context).size.width - 40 + 16) -
                   16,
               child: Container(
@@ -257,8 +219,10 @@ class _FirstPageState extends State<FirstPage> {
                 width: 16,
                 decoration: BoxDecoration(
                   borderRadius: const BorderRadius.all(Radius.circular(8)),
-                  // color: _nowHourAngle > prayerTimes!['Sunset']?.time ||
-                  //         _nowHourAngle < prayerTimes!['Sunrise']!.time
+                  // color: (_nowHourAngle! >
+                  //             (prayerTimes['Sunset']?.time ?? 0.75)) ||
+                  //         (_nowHourAngle! <
+                  //             (prayerTimes['Sunrise']?.time ?? 0.25))
                   //     ? Colors.red.shade500
                   //     : Colors.yellow.shade500,
                   color: Colors.yellow,
@@ -320,8 +284,12 @@ class _FirstPageState extends State<FirstPage> {
                 child: IntrinsicHeight(
                   child: Row(
                     children: [
+                      // Icon(
+                      //   Icons.access_time_rounded,
+                      //   semanticLabel: prayerList[index],
+                      // ),
                       Icon(
-                        Icons.access_time_rounded,
+                        prayerTimes[prayerList[index]]?.icon,
                         semanticLabel: prayerList[index],
                       ),
                       const VerticalDivider(color: Colors.black),
@@ -331,12 +299,6 @@ class _FirstPageState extends State<FirstPage> {
                           prayerList[index],
                         ),
                       ),
-                      prayerTimes[prayerList]?.icon != null
-                          ? Icon(
-                              prayerTimes[prayerList[index]]?.icon,
-                              semanticLabel: prayerList[index],
-                            )
-                          : const Text(''),
                       const VerticalDivider(color: Colors.black),
                       Text(
                         prayerTimes[prayerList[index]]?.hour12 ??
@@ -354,7 +316,7 @@ class _FirstPageState extends State<FirstPage> {
           children: [
             DropdownButton<String>(
               dropdownColor: Colors.green.shade50,
-              isDense: true,
+              // isDense: true,
               iconSize: 0.0,
               value: defaultMethod,
               alignment: AlignmentDirectional.center,
@@ -378,12 +340,11 @@ class _FirstPageState extends State<FirstPage> {
             ),
             DropdownButton<String>(
               dropdownColor: Colors.green.shade50,
-              isDense: true,
+              // isDense: true,
               iconSize: 0.0,
-              value: school,
+              value: asrMethod,
               alignment: AlignmentDirectional.center,
-              items: ["Standard - Shafi'i | Maliki | Ja'fari", "Hanbali"]
-                  .map<DropdownMenuItem<String>>(
+              items: ["Standard", "Hanafi"].map<DropdownMenuItem<String>>(
                 (String value) {
                   return DropdownMenuItem<String>(
                     value: value,
@@ -396,8 +357,10 @@ class _FirstPageState extends State<FirstPage> {
               style: TextStyle(color: Colors.green.shade900, fontSize: 12),
               onChanged: (String? string) {
                 setState(() {
-                  school = string!;
-                  if (school == "Hanbali") getdata();
+                  String oldAsrMethod = asrMethod;
+                  asrMethod = string!;
+
+                  if (asrMethod != oldAsrMethod) getdata();
                 });
               },
             ),
@@ -458,8 +421,6 @@ class SolarBackground extends StatelessWidget {
   }
 }
 
-
-
-  // populateContainers(int index) {
-  //   return ;
-  // }
+// populateContainers(int index) {
+//   return ;
+// }

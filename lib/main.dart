@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'screen/home_screen.dart';
 import 'package:device_preview/device_preview.dart';
-
 // void main() {
 //   runApp(const MyApp());
 // }
@@ -38,7 +37,13 @@ class MyApp extends StatelessWidget {
       useInheritedMediaQuery: true,
       locale: DevicePreview.locale(context),
       builder: DevicePreview.appBuilder,
-      theme: ThemeData.light(),
+      theme: ThemeData(
+        fontFamily: 'Ubuntu',
+        primaryColor: Colors.green.shade900,
+        // textTheme: const TextTheme(
+        //   bodyText2: TextStyle(fontSize: 14.0, fontFamily: 'Hind'),
+        // ),
+      ),
       darkTheme: ThemeData.dark(),
       home: const Homescreen(),
     );
