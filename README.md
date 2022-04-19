@@ -1,4 +1,4 @@
-# prayertime
+# Prayer Times
  
  This is a **Prayertimes App** including 3 important aspects of a prayertimes app.
  
