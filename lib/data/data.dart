@@ -41,7 +41,7 @@ Map<String, dynamic> methods = {
 
 class Data {
   double? hourAngle; // hourangle
-  TimeOfDay? timeOfDay; // timeOfDay
+  DateTime? timeOfDay; // timeOfDay
   String? string; // time in string
   double? time; //hourAngle + noon
   IconData? icon;
