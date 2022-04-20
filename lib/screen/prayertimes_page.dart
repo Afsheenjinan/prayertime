@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'dart:math' as math;
 import '../data/data.dart';
 import '../functions/functions.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class PrayerTimesPage extends StatefulWidget {
   const PrayerTimesPage(
@@ -21,8 +22,6 @@ class PrayerTimesPage extends StatefulWidget {
 }
 
 class _PrayerTimesPageState extends State<PrayerTimesPage> {
-  String defaultMethod = "MWL";
-  String asrMethod = "Standard"; // Shafi'i, Maliki, Hanbali, and Hanafi
   Timer? _timer;
   DateTime _now = DateTime.now();
   double? _nowHourAngle;
@@ -59,6 +58,9 @@ class _PrayerTimesPageState extends State<PrayerTimesPage> {
 
   Map<String, Data>? prayertimesdata;
 
+  String? defaultMethod;
+  String? asrMethod;
+
   @override
   void initState() {
     super.initState();
@@ -70,12 +72,18 @@ class _PrayerTimesPageState extends State<PrayerTimesPage> {
     _sunDeclination = _solarData?['Sun Declination'];
     _timer =
         Timer.periodic(const Duration(seconds: 1), (Timer timer) => _getTime());
+    _getSharedPreferences();
+  }
 
+  Future<void> _getSharedPreferences() async {
+    SharedPreferences sharedPreferences = await SharedPreferences.getInstance();
     setState(() {
+      defaultMethod = sharedPreferences.getString('defaultMethod') ?? 'MWL';
+      asrMethod = sharedPreferences.getString('asrMethod') ?? 'Standard';
+
       _solarNoon =
           (720 - 4 * widget.longitude! - _equationOfTime! + _timeZone! * 60) /
               (24 * 60);
-
       getdata();
     });
   }
@@ -151,7 +159,6 @@ class _PrayerTimesPageState extends State<PrayerTimesPage> {
           hourAngle = direction * calculateTime(-horizontalParrallax);
           break;
       }
-
       // prayerTimes[prayerName]?.hourAngle = hourAngle;
       return hourAngle;
     }
@@ -164,18 +171,15 @@ class _PrayerTimesPageState extends State<PrayerTimesPage> {
     int hh = (time * 24).floor();
     int mm = ((time * 24 * 60) % 60).floor();
     int ss = ((time * 24 * 60 * 60) % 60).floor();
-    if (ss >= 30) mm = mm + 1;
+    // if (ss >= 30) mm = mm + 1;
 
-    TimeOfDay timeOfDay = TimeOfDay(hour: hh, minute: mm);
+    DateTime dateTime = DateTime(_now.year, _now.month, _now.day, hh, mm, ss);
 
     prayerTimes[prayerName]?.time = time;
-    prayerTimes[prayerName]?.timeOfDay = timeOfDay;
-    prayerTimes[prayerName]?.hour12 =
-        '${timify(hh > 12 ? hh % 12 : hh)} : ${timify(mm)} ${timeOfDay.period.name}';
-    prayerTimes[prayerName]?.hour24 = '${timify(hh)}:${timify(mm)}';
+    prayerTimes[prayerName]?.timeOfDay = dateTime;
+    prayerTimes[prayerName]?.hour12 = DateFormat('hh:mm a').format(dateTime);
+    prayerTimes[prayerName]?.hour24 = DateFormat('HH:mm').format(dateTime);
   }
-
-  String timify(int value) => value.toString().padLeft(2, "0");
 
   getdata() {
     for (var item in prayerTimes.keys) {
@@ -206,39 +210,10 @@ class _PrayerTimesPageState extends State<PrayerTimesPage> {
           ],
         ),
         Stack(
+          alignment: Alignment.center,
           children: [
             SolarBackground(prayerTimes: prayerTimes),
-            Positioned(
-              top: (((_nowHourAngle! - 0.5).abs()) * 1.5 + 0.25) * (100 + 16) -
-                  16,
-              left: _nowHourAngle! *
-                      (MediaQuery.of(context).size.width - 40 + 16) -
-                  16,
-              child: Container(
-                height: 16,
-                width: 16,
-                decoration: BoxDecoration(
-                  borderRadius: const BorderRadius.all(Radius.circular(8)),
-                  // color: (_nowHourAngle! >
-                  //             (prayerTimes['Sunset']?.time ?? 0.75)) ||
-                  //         (_nowHourAngle! <
-                  //             (prayerTimes['Sunrise']?.time ?? 0.25))
-                  //     ? Colors.red.shade500
-                  //     : Colors.yellow.shade500,
-                  color: Colors.yellow,
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.grey.withOpacity(0.5),
-                      spreadRadius: 0,
-                      blurRadius: 2,
-                    )
-                  ],
-                ),
-                margin:
-                    const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-                padding: const EdgeInsets.all(8),
-              ),
-            ),
+            Sun(nowHourAngle: _nowHourAngle, prayerTimes: prayerTimes),
           ],
         ),
         Container(
@@ -284,10 +259,6 @@ class _PrayerTimesPageState extends State<PrayerTimesPage> {
                 child: IntrinsicHeight(
                   child: Row(
                     children: [
-                      // Icon(
-                      //   Icons.access_time_rounded,
-                      //   semanticLabel: prayerList[index],
-                      // ),
                       Icon(
                         prayerTimes[prayerList[index]]?.icon,
                         semanticLabel: prayerList[index],
@@ -331,10 +302,15 @@ class _PrayerTimesPageState extends State<PrayerTimesPage> {
               borderRadius: const BorderRadius.all(Radius.circular(10)),
               underline: const SizedBox.shrink(),
               style: TextStyle(color: Colors.green.shade900, fontSize: 12),
-              onChanged: (String? string) {
+              onChanged: (String? string) async {
+                SharedPreferences sharedPreferences =
+                    await SharedPreferences.getInstance();
+                sharedPreferences.setString('defaultMethod', string!);
                 setState(() {
-                  defaultMethod = string!;
-                  getdata();
+                  String? olddefaultMethod = defaultMethod;
+                  defaultMethod = string;
+
+                  if (defaultMethod != olddefaultMethod) getdata();
                 });
               },
             ),
@@ -355,10 +331,14 @@ class _PrayerTimesPageState extends State<PrayerTimesPage> {
               borderRadius: const BorderRadius.all(Radius.circular(10)),
               underline: const SizedBox.shrink(),
               style: TextStyle(color: Colors.green.shade900, fontSize: 12),
-              onChanged: (String? string) {
+
+              onChanged: (String? string) async {
+                SharedPreferences sharedPreferences =
+                    await SharedPreferences.getInstance();
+                sharedPreferences.setString('asrMethod', string!);
                 setState(() {
-                  String oldAsrMethod = asrMethod;
-                  asrMethod = string!;
+                  String? oldAsrMethod = asrMethod;
+                  asrMethod = string;
 
                   if (asrMethod != oldAsrMethod) getdata();
                 });
@@ -370,6 +350,52 @@ class _PrayerTimesPageState extends State<PrayerTimesPage> {
     );
   }
 }
+
+///------------------------------------------------------------------------- [Sun]
+
+class Sun extends StatelessWidget {
+  const Sun({
+    Key? key,
+    required double? nowHourAngle,
+    required this.prayerTimes,
+  })  : _nowHourAngle = nowHourAngle,
+        super(key: key);
+
+  final double? _nowHourAngle;
+  final Map<String, Data> prayerTimes;
+
+  @override
+  Widget build(BuildContext context) {
+    return Positioned(
+      top: (100 - 16) * (1 - Sin(_nowHourAngle! * 180)),
+      left: (MediaQuery.of(context).size.width - 40 - 16) /
+          2 *
+          (1 - Cos(_nowHourAngle! * 180)),
+      child: Container(
+        height: 16,
+        width: 16,
+        decoration: BoxDecoration(
+          borderRadius: const BorderRadius.all(Radius.circular(8)),
+          color: (_nowHourAngle! > (prayerTimes['Sunrise']?.time ?? 0.75)) |
+                  (_nowHourAngle! < (prayerTimes['Sunset']?.time ?? 0.25))
+              ? Colors.yellow.shade500
+              : Colors.red,
+          boxShadow: [
+            BoxShadow(
+              color: Colors.grey.withOpacity(0.5),
+              spreadRadius: 0,
+              blurRadius: 2,
+            )
+          ],
+        ),
+        margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+        padding: const EdgeInsets.all(8),
+      ),
+    );
+  }
+}
+
+///------------------------------------------------------------------------- [SolarBackground]
 
 class SolarBackground extends StatelessWidget {
   const SolarBackground({
@@ -420,7 +446,3 @@ class SolarBackground extends StatelessWidget {
     );
   }
 }
-
-// populateContainers(int index) {
-//   return ;
-// }

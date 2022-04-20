@@ -110,24 +110,7 @@ Map<String, double> getEquationOfTime(double JC) {
               Eccent_Earth_Orbit *
               Eccent_Earth_Orbit *
               Sin(2 * Geom_Mean_Anom_Sun));
-/** 
-  // debugPrint('Geom_Mean_Long_Sun : $Geom_Mean_Long_Sun');
-  // debugPrint('Geom_Mean_Anom_Sun : $Geom_Mean_Anom_Sun');
-  // debugPrint('Eccent_Earth_Orbit : $Eccent_Earth_Orbit');
-  // debugPrint('[Sun_Eq_of_Ctr] : $Sun_Eq_of_Ctr');
-  // debugPrint('Sun_True_Long: $Sun_True_Long');
-  // debugPrint('Sun_True_Anom : $Sun_True_Anom');
-  // debugPrint('Sun_Rad_Vector : $Sun_Rad_Vector');
-  // debugPrint('Sun_App_Long : $Sun_App_Long');
-  // debugPrint('Mean_Obliq_Ecliptic : $Mean_Obliq_Ecliptic');
-  // debugPrint('Obliq_Corr : $Obliq_Corr');
-  // debugPrint('Sun_Rt_Ascen : $Sun_Rt_Ascen');
-  // debugPrint('Sun_Declin : $Sun_Declin');
-  // debugPrint('gamma : $gamma');
-  // debugPrint('Eq_of_Time : $Eq_of_Time');
-  **/
 
-  /// debugPrint('Sun_Rt_Ascen : $Sun_Rt_Ascen');
   return {
     'Equation of Time': Eq_of_Time,
     'Sun Declination': Sun_Declin,
