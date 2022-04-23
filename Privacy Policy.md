@@ -1,4 +1,6 @@
-**Privacy Policy**
+## **Privacy Policy**
+
+**Last updated April 23, 2022**
 
 I built the "Prayer Times | Qibla" app as an Open Source app. This SERVICE is provided by the developer at no cost and is intended for use as is.
 
