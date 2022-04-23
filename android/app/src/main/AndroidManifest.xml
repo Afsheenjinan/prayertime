@@ -2,9 +2,8 @@
     package="com.example.prayertime">
 
   <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
-  <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
      <application
-        android:label="prayertime"
+        android:label="Prayer Times | Qibla"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
         <activity
