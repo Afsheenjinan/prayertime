@@ -2,7 +2,7 @@
 
 **Last updated April 23, 2022**
 
-I built the "Prayer Times | Qibla" app as an Open Source app. This SERVICE is provided by the developer at no cost and is intended for use as is.
+I built the "Prayer Times | Qibla" app as an [Open Source app](https://github.com/Afsheenjinan/prayertime). This SERVICE is provided by the developer at no cost and is intended for use as is.
 
 This page is used to inform visitors regarding my policies with the collection, use, and disclosure of Personal Information if anyone decided to use my Service.
 
