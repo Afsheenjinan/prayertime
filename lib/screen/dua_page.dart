@@ -1,16 +1,26 @@
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../data/duas.dart';
 
 class DuaPage extends StatefulWidget {
-  const DuaPage({Key? key}) : super(key: key);
-
+  const DuaPage({Key? key, required this.sharedPreferences}) : super(key: key);
+  final SharedPreferences? sharedPreferences;
   @override
   State<DuaPage> createState() => _DuaPageState();
 }
 
 class _DuaPageState extends State<DuaPage> {
-  bool isTransliterationChecked = true;
-  bool isTranslationChecked = true;
+  bool? isTransliterationChecked;
+  bool? isTranslationChecked;
+
+  @override
+  void initState() {
+    super.initState();
+    isTransliterationChecked =
+        widget.sharedPreferences?.getBool('isTransliterationChecked') ?? true;
+    isTranslationChecked =
+        widget.sharedPreferences?.getBool('isTranslationChecked') ?? true;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -20,12 +30,14 @@ class _DuaPageState extends State<DuaPage> {
           Row(
             children: [
               Checkbox(
-                  checkColor: Colors.green.shade50,
-                  activeColor: Colors.green.shade900,
+                  checkColor: Theme.of(context).primaryColorLight,
+                  activeColor: Theme.of(context).primaryColorDark,
                   value: isTransliterationChecked,
                   onChanged: (bool? value) {
                     setState(() {
                       isTransliterationChecked = value!;
+                      widget.sharedPreferences
+                          ?.setBool('isTransliterationChecked', value);
                     });
                   }),
               const Text('Transliteration'),
@@ -34,12 +46,14 @@ class _DuaPageState extends State<DuaPage> {
           Row(
             children: [
               Checkbox(
-                  checkColor: Colors.green.shade50,
-                  activeColor: Colors.green.shade900,
+                  checkColor: Theme.of(context).primaryColorLight,
+                  activeColor: Theme.of(context).primaryColorDark,
                   value: isTranslationChecked,
                   onChanged: (bool? value) {
                     setState(() {
                       isTranslationChecked = value!;
+                      widget.sharedPreferences
+                          ?.setBool('isTranslationChecked', value);
                     });
                   }),
               const Text('Translation'),
@@ -59,8 +73,7 @@ class _DuaPageState extends State<DuaPage> {
                       padding: const EdgeInsets.symmetric(
                           horizontal: 10, vertical: 5),
                       decoration: BoxDecoration(
-                        // color: Colors.amber.shade50,
-                        color: Colors.green.shade50,
+                        color: Theme.of(context).primaryColorLight,
                         borderRadius: BorderRadius.circular(10),
                       ),
                       child: Text(
@@ -74,7 +87,7 @@ class _DuaPageState extends State<DuaPage> {
                         ),
                       ),
                     ),
-                    isTransliterationChecked
+                    isTransliterationChecked ?? false
                         ? Container(
                             padding: const EdgeInsets.symmetric(vertical: 5),
                             child: Text(duaList[index].transliteration,
@@ -84,7 +97,7 @@ class _DuaPageState extends State<DuaPage> {
                                     fontFamily: 'Kalam')),
                           )
                         : const SizedBox.shrink(),
-                    isTranslationChecked
+                    isTranslationChecked ?? false
                         ? Container(
                             padding: const EdgeInsets.symmetric(vertical: 5),
                             child: Text(
@@ -102,9 +115,7 @@ class _DuaPageState extends State<DuaPage> {
                       ),
                     ),
                     const SizedBox(height: 10),
-                    const Divider(
-                      color: Colors.black,
-                    )
+                    const Divider()
                   ],
                 ),
               );

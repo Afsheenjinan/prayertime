@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:geocoding/geocoding.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import 'prayertimes_page.dart';
 import 'qibla_page.dart';
@@ -17,7 +18,7 @@ class Homescreen extends StatefulWidget {
 
 class _HomescreenState extends State<Homescreen> {
   int _currentIndex = 0;
-  List? pages;
+  late List<Widget> pages;
 
   double? _latitude;
   double? _longitude;
@@ -26,16 +27,22 @@ class _HomescreenState extends State<Homescreen> {
   double distanceInMeters = 0.0;
   double bearingInAngle = 0.0;
 
+  SharedPreferences? sharedPreferences;
+
+  PageController pageController = PageController();
+
   @override
   void initState() {
     super.initState();
+
     _updatePosition();
   }
 
   Future<void> _updatePosition() async {
     // LocationData locationData = await _determinePosition();
-    Position locationData = await _determinePosition();
+    sharedPreferences = await SharedPreferences.getInstance();
     Position? lastKnownPosition = await Geolocator.getLastKnownPosition();
+    Position locationData = await _determinePosition();
 
     List<Placemark> placeMark = await placemarkFromCoordinates(
         locationData.latitude, locationData.longitude);
@@ -49,6 +56,21 @@ class _HomescreenState extends State<Homescreen> {
 
       _latitude = locationData.latitude;
       _longitude = locationData.longitude;
+      pages = [
+        PrayerTimesPage(
+          sharedPreferences: sharedPreferences,
+          latitude: _latitude,
+          longitude: _longitude,
+          address: _address,
+        ),
+        QiblaPage(
+          latitude: _latitude,
+          longitude: _longitude,
+        ),
+        DuaPage(
+          sharedPreferences: sharedPreferences,
+        )
+      ];
     });
   }
 
@@ -81,10 +103,21 @@ class _HomescreenState extends State<Homescreen> {
 
     // When we reach here, permissions are granted and we can continue accessing the position of the device.
     return await Geolocator.getCurrentPosition(
-        desiredAccuracy: LocationAccuracy.high);
+        desiredAccuracy: LocationAccuracy.low);
   }
 
   void _onItemTapped(int index) {
+    setState(() {
+      _currentIndex = index;
+      pageController.animateToPage(
+        index,
+        duration: const Duration(milliseconds: 500),
+        curve: Curves.ease,
+      );
+    });
+  }
+
+  void onPageChanged(int index) {
     setState(() {
       _currentIndex = index;
     });
@@ -92,23 +125,14 @@ class _HomescreenState extends State<Homescreen> {
 
   @override
   Widget build(BuildContext context) {
-    pages = [
-      PrayerTimesPage(
-        latitude: _latitude,
-        longitude: _longitude,
-        address: _address,
-      ),
-      QiblaPage(
-        latitude: _latitude,
-        longitude: _longitude,
-      ),
-      const DuaPage()
-    ];
-
     return SafeArea(
-      child: _latitude != null
+      child: (_latitude != null && sharedPreferences != null)
           ? Scaffold(
-              body: pages![_currentIndex],
+              body: PageView(
+                children: pages,
+                controller: pageController,
+                onPageChanged: onPageChanged,
+              ),
               bottomNavigationBar: BottomNavigationBar(
                 items: const [
                   BottomNavigationBarItem(
@@ -123,24 +147,20 @@ class _HomescreenState extends State<Homescreen> {
                 ],
                 currentIndex: _currentIndex,
                 onTap: _onItemTapped,
-                selectedItemColor: Colors.green.shade900,
               ),
             )
           : Scaffold(
-              body: Container(
-                color: Colors.green.shade50,
-                child: Center(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Text('ٱلسَّلَامُ عَلَيْكُمْ',
-                          style: Theme.of(context).textTheme.headline6),
-                      Text('وَرَحْمَةُ ٱللَّٰهِ',
-                          style: Theme.of(context).textTheme.headline6),
-                      Text('وَبَرَكَاتُهُ',
-                          style: Theme.of(context).textTheme.headline6),
-                    ],
-                  ),
+              body: Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text('ٱلسَّلَامُ عَلَيْكُمْ',
+                        style: Theme.of(context).textTheme.headline6),
+                    Text('وَرَحْمَةُ ٱللَّٰهِ',
+                        style: Theme.of(context).textTheme.headline6),
+                    Text('وَبَرَكَاتُهُ',
+                        style: Theme.of(context).textTheme.headline6),
+                  ],
                 ),
               ),
             ),

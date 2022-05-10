@@ -11,11 +11,13 @@ class PrayerTimesPage extends StatefulWidget {
       {Key? key,
       required this.latitude,
       required this.longitude,
-      required this.address})
+      required this.address,
+      required this.sharedPreferences})
       : super(key: key);
   final double? latitude;
   final double? longitude;
-  final String address;
+  final String? address;
+  final SharedPreferences? sharedPreferences;
 
   @override
   State<PrayerTimesPage> createState() => _PrayerTimesPageState();
@@ -72,21 +74,24 @@ class _PrayerTimesPageState extends State<PrayerTimesPage> {
     _sunDeclination = _solarData?['Sun Declination'];
     _timer =
         Timer.periodic(const Duration(seconds: 1), (Timer timer) => _getTime());
-    _getSharedPreferences();
-  }
 
-  Future<void> _getSharedPreferences() async {
-    SharedPreferences sharedPreferences = await SharedPreferences.getInstance();
     setState(() {
-      defaultMethod = sharedPreferences.getString('defaultMethod') ?? 'MWL';
-      asrMethod = sharedPreferences.getString('asrMethod') ?? 'Standard';
+      defaultMethod =
+          widget.sharedPreferences?.getString('defaultMethod') ?? 'MWL';
+      asrMethod =
+          widget.sharedPreferences?.getString('asrMethod') ?? 'Standard';
 
       _solarNoon =
           (720 - 4 * widget.longitude! - _equationOfTime! + _timeZone! * 60) /
               (24 * 60);
       getdata();
     });
+    // _getSharedPreferences();
   }
+
+  // Future<void> _getSharedPreferences() async {
+  //   SharedPreferences sharedPreferences = await SharedPreferences.getInstance();
+  // }
 
   @override
   void dispose() {
@@ -201,12 +206,14 @@ class _PrayerTimesPageState extends State<PrayerTimesPage> {
               Icons.location_on_outlined,
               size: 15,
               semanticLabel: 'Location',
-              color: widget.latitude == null ? Colors.white : Colors.green,
+              color: widget.latitude == null
+                  ? Theme.of(context).scaffoldBackgroundColor
+                  : Colors.green,
             ),
             const SizedBox(
               width: 10,
             ),
-            Text(widget.address),
+            Text('${widget.address}'),
           ],
         ),
         Stack(
@@ -244,10 +251,10 @@ class _PrayerTimesPageState extends State<PrayerTimesPage> {
               return Container(
                 decoration: BoxDecoration(
                   borderRadius: const BorderRadius.all(Radius.circular(5)),
-                  color: Colors.white,
+                  color: Theme.of(context).backgroundColor,
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.grey.withOpacity(0.5),
+                      color: Theme.of(context).shadowColor,
                       spreadRadius: 0,
                       blurRadius: 10,
                     )
@@ -263,14 +270,14 @@ class _PrayerTimesPageState extends State<PrayerTimesPage> {
                         prayerTimes[prayerList[index]]?.icon,
                         semanticLabel: prayerList[index],
                       ),
-                      const VerticalDivider(color: Colors.black),
+                      const VerticalDivider(),
                       Flexible(
                         fit: FlexFit.tight,
                         child: Text(
                           prayerList[index],
                         ),
                       ),
-                      const VerticalDivider(color: Colors.black),
+                      const VerticalDivider(),
                       Text(
                         prayerTimes[prayerList[index]]?.hour12 ??
                             '- - : - -  - -',
@@ -282,69 +289,92 @@ class _PrayerTimesPageState extends State<PrayerTimesPage> {
             },
           ),
         ),
-        Column(
-          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-          children: [
-            DropdownButton<String>(
-              dropdownColor: Colors.green.shade50,
-              // isDense: true,
-              iconSize: 0.0,
-              value: defaultMethod,
-              alignment: AlignmentDirectional.center,
-              items: methods.keys.map<DropdownMenuItem<String>>(
-                (String value) {
-                  return DropdownMenuItem<String>(
-                    value: value,
-                    child: Text(methods[value]['title'].toString()),
-                  );
-                },
-              ).toList(),
-              borderRadius: const BorderRadius.all(Radius.circular(10)),
-              underline: const SizedBox.shrink(),
-              style: TextStyle(color: Colors.green.shade900, fontSize: 12),
-              onChanged: (String? string) async {
-                SharedPreferences sharedPreferences =
-                    await SharedPreferences.getInstance();
-                sharedPreferences.setString('defaultMethod', string!);
-                setState(() {
-                  String? olddefaultMethod = defaultMethod;
-                  defaultMethod = string;
+        Container(
+          margin: const EdgeInsets.symmetric(horizontal: 20),
+          child: Column(
+            // mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  const Text(
+                    'Based on',
+                    textAlign: TextAlign.end,
+                  ),
+                  const SizedBox(
+                    width: 20,
+                  ),
+                  DropdownButton<String>(
+                    dropdownColor: Theme.of(context).primaryColorLight,
+                    // isDense: true,
+                    iconSize: 0.0,
+                    value: defaultMethod,
+                    alignment: AlignmentDirectional.centerEnd,
+                    items: methods.keys.map<DropdownMenuItem<String>>(
+                      (String value) {
+                        return DropdownMenuItem<String>(
+                          value: value,
+                          child: Text(methods[value]['title'].toString()),
+                        );
+                      },
+                    ).toList(),
+                    borderRadius: const BorderRadius.all(Radius.circular(10)),
+                    underline: const SizedBox.shrink(),
+                    style: TextStyle(
+                        color: Theme.of(context).primaryColorDark,
+                        fontSize: 12),
+                    onChanged: (String? string) async {
+                      widget.sharedPreferences
+                          ?.setString('defaultMethod', string!);
+                      setState(() {
+                        String? olddefaultMethod = defaultMethod;
+                        defaultMethod = string;
 
-                  if (defaultMethod != olddefaultMethod) getdata();
-                });
-              },
-            ),
-            DropdownButton<String>(
-              dropdownColor: Colors.green.shade50,
-              // isDense: true,
-              iconSize: 0.0,
-              value: asrMethod,
-              alignment: AlignmentDirectional.center,
-              items: ["Standard", "Hanafi"].map<DropdownMenuItem<String>>(
-                (String value) {
-                  return DropdownMenuItem<String>(
-                    value: value,
-                    child: Text(value),
-                  );
-                },
-              ).toList(),
-              borderRadius: const BorderRadius.all(Radius.circular(10)),
-              underline: const SizedBox.shrink(),
-              style: TextStyle(color: Colors.green.shade900, fontSize: 12),
-
-              onChanged: (String? string) async {
-                SharedPreferences sharedPreferences =
-                    await SharedPreferences.getInstance();
-                sharedPreferences.setString('asrMethod', string!);
-                setState(() {
-                  String? oldAsrMethod = asrMethod;
-                  asrMethod = string;
-
-                  if (asrMethod != oldAsrMethod) getdata();
-                });
-              },
-            ),
-          ],
+                        if (defaultMethod != olddefaultMethod) getdata();
+                      });
+                    },
+                  ),
+                ],
+              ),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  const Text(
+                    'Asr Shadow',
+                    textAlign: TextAlign.end,
+                  ),
+                  DropdownButton<String>(
+                    dropdownColor: Theme.of(context).primaryColorLight,
+                    isDense: true,
+                    iconSize: 0.0,
+                    value: asrMethod,
+                    alignment: AlignmentDirectional.centerEnd,
+                    items: ["Standard", "Hanafi"].map<DropdownMenuItem<String>>(
+                      (String value) {
+                        return DropdownMenuItem<String>(
+                          value: value,
+                          child: Text(value),
+                        );
+                      },
+                    ).toList(),
+                    borderRadius: const BorderRadius.all(Radius.circular(10)),
+                    underline: const SizedBox.shrink(),
+                    style: TextStyle(
+                        color: Theme.of(context).primaryColorDark,
+                        fontSize: 12),
+                    onChanged: (String? string) async {
+                      widget.sharedPreferences?.setString('asrMethod', string!);
+                      setState(() {
+                        String? oldAsrMethod = asrMethod;
+                        asrMethod = string;
+                        if (asrMethod != oldAsrMethod) getdata();
+                      });
+                    },
+                  ),
+                ],
+              ),
+            ],
+          ),
         ),
       ],
     );
@@ -367,19 +397,19 @@ class Sun extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Positioned(
-      top: (100 - 16) * (1 - Sin(_nowHourAngle! * 180)),
+      top: (100 - 16) / 2 * (1 + Cos(_nowHourAngle! * 360)),
       left: (MediaQuery.of(context).size.width - 40 - 16) /
           2 *
-          (1 - Cos(_nowHourAngle! * 180)),
+          (1 + Sin(-_nowHourAngle! * 360)),
       child: Container(
         height: 16,
         width: 16,
         decoration: BoxDecoration(
           borderRadius: const BorderRadius.all(Radius.circular(8)),
-          color: (_nowHourAngle! > (prayerTimes['Sunrise']?.time ?? 0.75)) |
-                  (_nowHourAngle! < (prayerTimes['Sunset']?.time ?? 0.25))
+          color: (_nowHourAngle! > (prayerTimes['Sunrise']?.time ?? 0.25)) &
+                  (_nowHourAngle! < (prayerTimes['Sunset']?.time ?? 0.75))
               ? Colors.yellow.shade500
-              : Colors.red,
+              : Colors.orange,
           boxShadow: [
             BoxShadow(
               color: Colors.grey.withOpacity(0.5),
@@ -435,7 +465,7 @@ class SolarBackground extends StatelessWidget {
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.grey.withOpacity(0.5),
+            color: Theme.of(context).shadowColor,
             spreadRadius: 0,
             blurRadius: 10,
           )

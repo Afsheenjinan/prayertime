@@ -50,7 +50,7 @@ class _QiblaPageState extends State<QiblaPage> {
 
         double radius = Sqrt(x * x + y * y + z * z);
 
-        northAngle = aCos(y / radius);
+        northAngle = aTan2(x, y);
         qiblaAngleToNorth = northAngle! + bearingInAngle!;
         qiblaAngleToPhone = (360 - qiblaAngleToNorth!).abs();
       });
@@ -70,8 +70,12 @@ class _QiblaPageState extends State<QiblaPage> {
       decoration: BoxDecoration(
         gradient: LinearGradient(
           colors: [
-            Colors.green.shade100,
-            Colors.green.shade50,
+            MediaQuery.of(context).platformBrightness == Brightness.dark
+                ? Colors.grey.shade900
+                : Colors.green.shade100,
+            MediaQuery.of(context).platformBrightness == Brightness.dark
+                ? Colors.grey.shade800
+                : Colors.green.shade50,
           ],
           stops: const [0.5, 0.5],
           transform: GradientRotation(Radians(qiblaAngleToNorth! - 90)),
@@ -81,7 +85,9 @@ class _QiblaPageState extends State<QiblaPage> {
         crossAxisAlignment: CrossAxisAlignment.center,
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Image.asset('assets/images/qibla64.png'),
+          MediaQuery.of(context).platformBrightness == Brightness.dark
+              ? Image.asset('assets/images/qibla_dark48.png')
+              : Image.asset('assets/images/qibla48.png'),
           const SizedBox(height: 20),
           Text(
             ' ${qiblaAngleToPhone?.toStringAsFixed(0)}°',
@@ -89,18 +95,16 @@ class _QiblaPageState extends State<QiblaPage> {
             style: TextStyle(
                 fontSize: 40,
                 fontWeight: FontWeight.bold,
-                color: qiblaAngleToPhone! < 1
-                    ? Colors.green.shade700
-                    : Colors.black),
+                color: qiblaAngleToPhone! < 1 ? Colors.green.shade500 : null),
           ),
           const SizedBox(height: 20),
           Icon(
             Icons.download_rounded,
-            color:
-                qiblaAngleToPhone! < 1 ? Colors.green.shade700 : Colors.black,
+            color: qiblaAngleToPhone! < 1 ? Colors.green.shade500 : null,
           ),
+          const SizedBox(height: 10),
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: 10),
+            // padding: const EdgeInsets.symmetric(horizontal: 5),
             height: 256,
             width: 256,
             decoration: BoxDecoration(
@@ -109,7 +113,7 @@ class _QiblaPageState extends State<QiblaPage> {
                 BoxShadow(
                   color: Colors.grey.withOpacity(0.5),
                   spreadRadius: 0,
-                  blurRadius: 20,
+                  blurRadius: 10,
                 )
               ],
             ),
@@ -117,22 +121,25 @@ class _QiblaPageState extends State<QiblaPage> {
               alignment: Alignment.center,
               children: [
                 Transform.rotate(
-                    angle: Radians(northAngle),
-                    child: Image.asset(
-                      'assets/images/compass.png',
-                    )),
+                  angle: Radians(northAngle),
+                  child: MediaQuery.of(context).platformBrightness ==
+                          Brightness.dark
+                      ? Image.asset('assets/images/compass_dark.png')
+                      : Image.asset('assets/images/compass.png'),
+                ),
                 Transform.rotate(
-                    angle: Radians(qiblaAngleToNorth),
-                    child: Image.asset('assets/images/qibla.png')),
+                  angle: Radians(qiblaAngleToNorth),
+                  child: Image.asset('assets/images/qibla_direction.png'),
+                ),
               ],
             ),
           ),
           Container(
             margin: const EdgeInsets.all(20),
             padding: const EdgeInsets.all(20),
-            decoration: const BoxDecoration(
-              borderRadius: BorderRadius.all(Radius.circular(10)),
-              color: Colors.white,
+            decoration: BoxDecoration(
+              borderRadius: const BorderRadius.all(Radius.circular(10)),
+              color: Theme.of(context).backgroundColor,
             ),
             child: Column(
               children: [
