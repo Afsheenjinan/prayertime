@@ -1,5 +1,4 @@
 import 'dart:async';
-
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:prayertime/functions/functions.dart';
@@ -26,8 +25,10 @@ class _QiblaPageState extends State<QiblaPage> {
   double? bearingInAngle;
 
   double? northAngle;
-  double? qiblaAngleToNorth;
-  double? qiblaAngleToPhone;
+  double? qiblaAngleToTop;
+  double? qiblaAngleDispay;
+  List<double> datalist = [0, 0, 0, 0, 0];
+  double xx = 0, yy = 0, zz = 0;
 
   late StreamSubscription<MagnetometerEvent> magnetometer;
 
@@ -38,23 +39,28 @@ class _QiblaPageState extends State<QiblaPage> {
     distanceInMeters = Geolocator.distanceBetween(
         widget.latitude!, widget.longitude!, _latitudeMakka, _longitudeMakka);
 
-    bearingInAngle = Geolocator.bearingBetween(widget.latitude!,
-            widget.longitude!, _latitudeMakka, _longitudeMakka) %
-        360;
+    bearingInAngle = Geolocator.bearingBetween(
+        widget.latitude!, widget.longitude!, _latitudeMakka, _longitudeMakka);
 
     magnetometer = magnetometerEvents.listen((MagnetometerEvent event) {
       setState(() {
         double x = event.x;
         double y = event.y;
         double z = event.z;
-
         double radius = Sqrt(x * x + y * y + z * z);
+        xx = x / radius;
+        yy = y / radius;
+        zz = z / radius;
 
-        northAngle = aTan2(x, y);
-        qiblaAngleToNorth = northAngle! + bearingInAngle!;
-        qiblaAngleToPhone = (360 - qiblaAngleToNorth!).abs();
+        datalist.insert(0, aTan2(x, y));
+        datalist.removeLast();
+        double average = Average(datalist);
+
+        northAngle = average;
+        qiblaAngleToTop = (northAngle! + bearingInAngle!) % 360;
+        qiblaAngleDispay = 180 - (qiblaAngleToTop! - 180).abs();
       });
-    });
+    }, cancelOnError: true);
   }
 
   @override
@@ -78,7 +84,7 @@ class _QiblaPageState extends State<QiblaPage> {
                 : Colors.green.shade50,
           ],
           stops: const [0.5, 0.5],
-          transform: GradientRotation(Radians(qiblaAngleToNorth! - 90)),
+          transform: GradientRotation(Radians(qiblaAngleToTop! - 90)),
         ),
       ),
       child: Column(
@@ -90,17 +96,17 @@ class _QiblaPageState extends State<QiblaPage> {
               : Image.asset('assets/images/qibla48.png'),
           const SizedBox(height: 20),
           Text(
-            ' ${qiblaAngleToPhone?.toStringAsFixed(0)}°',
+            ' ${(qiblaAngleDispay!).toStringAsFixed(0)}°',
             textAlign: TextAlign.center,
             style: TextStyle(
                 fontSize: 40,
                 fontWeight: FontWeight.bold,
-                color: qiblaAngleToPhone! < 1 ? Colors.green.shade500 : null),
+                color: qiblaAngleDispay! < 1 ? Colors.green.shade500 : null),
           ),
           const SizedBox(height: 20),
           Icon(
             Icons.download_rounded,
-            color: qiblaAngleToPhone! < 1 ? Colors.green.shade500 : null,
+            color: qiblaAngleDispay! < 1 ? Colors.green.shade500 : null,
           ),
           const SizedBox(height: 10),
           Container(
@@ -128,7 +134,7 @@ class _QiblaPageState extends State<QiblaPage> {
                       : Image.asset('assets/images/compass.png'),
                 ),
                 Transform.rotate(
-                  angle: Radians(qiblaAngleToNorth),
+                  angle: Radians(qiblaAngleToTop),
                   child: Image.asset('assets/images/qibla_direction.png'),
                 ),
               ],
@@ -173,7 +179,7 @@ class _QiblaPageState extends State<QiblaPage> {
                     Flexible(
                         fit: FlexFit.tight,
                         child: Text(
-                          ' ${(bearingInAngle!).toStringAsFixed(0)}°N',
+                          ' ${(bearingInAngle! % 360).toStringAsFixed(0)}°N',
                           style: Theme.of(context).textTheme.headline6,
                         )),
                   ],

@@ -96,7 +96,9 @@ class _HomescreenState extends State<Homescreen> {
       setState(() => locationMessage = 'Requesting Permission.');
       permissionStatus = await Geolocator.requestPermission();
       if (permissionStatus == LocationPermission.denied) {
-        setState(() => locationMessage = 'Location permissions are denied.');
+        setState(() => locationMessage =
+            'Location permissions are denied.\nCalculations are based on location.\nPlease allow access to Course Location');
+        isPermanentlyDenied = true;
 
         // Permissions are denied, next time you could try requesting permissions again (this is also where Android's shouldShowRequestPermissionRationale returned true.
         // According to Android guidelines your App should show an explanatory UI now.
@@ -104,8 +106,8 @@ class _HomescreenState extends State<Homescreen> {
       }
     }
     if (permissionStatus == LocationPermission.deniedForever) {
-      setState(() =>
-          locationMessage = 'Location permissions are permanently denied.');
+      setState(() => locationMessage =
+          'Location permissions are permanently denied.\nCalculations are based on location.\nPlease allow access to Course Location');
       isPermanentlyDenied = true;
 
       // Permissions are denied forever, handle appropriately.

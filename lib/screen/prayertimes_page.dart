@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:ui';
 import 'package:intl/intl.dart';
 import 'package:flutter/material.dart';
 import 'dart:math' as math;
@@ -202,6 +201,45 @@ class _PrayerTimesPageState extends State<PrayerTimesPage> {
         const SizedBox(
           height: 10,
         ),
+        // ToggleButtons(
+        //   color: Colors.black.withOpacity(0.60),
+        //   // selectedColor: Color(0xFF6200EE),
+        //   selectedBorderColor: Theme.of(context).primaryColorDark,
+        //   fillColor: Colors.transparent,
+        //   textStyle: TextStyle(
+        //     color: Theme.of(context).primaryColorDark,
+        //   ),
+        //   // splashColor: Theme.of(context).primaryColorDark,
+        //   // hoverColor: Color(0xFF6200EE).withOpacity(0.5),
+        //   borderRadius: BorderRadius.circular(10.0),
+        //   constraints: BoxConstraints(
+        //       minHeight: 30.0,
+        //       minWidth: (MediaQuery.of(context).size.width - 72) / 3),
+        //   children: const [
+        //     Padding(
+        //       padding: EdgeInsets.symmetric(horizontal: 10.0),
+        //       child: Text('LIGHT'),
+        //     ),
+        //     Padding(
+        //       padding: EdgeInsets.symmetric(horizontal: 10.0),
+        //       child: Text('SYSTEM'),
+        //     ),
+        //     Padding(
+        //       padding: EdgeInsets.symmetric(horizontal: 10.0),
+        //       child: Text('DARK'),
+        //     ),
+        //   ],
+        //   onPressed: (index) {
+        //     setState(() {
+        //       int oldIndex = isButtonSelected.indexOf(true);
+        //       if (oldIndex != index) {
+        //         isButtonSelected[oldIndex] = false;
+        //         isButtonSelected[index] = true;
+        //       }
+        //     });
+        //   },
+        //   isSelected: isButtonSelected,
+        // ),
         Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
@@ -379,43 +417,6 @@ class _PrayerTimesPageState extends State<PrayerTimesPage> {
             ],
           ),
         ),
-        ToggleButtons(
-          color: Colors.black.withOpacity(0.60),
-          // selectedColor: Color(0xFF6200EE),
-          selectedBorderColor: Theme.of(context).primaryColorDark,
-          fillColor: Colors.transparent,
-          textStyle: TextStyle(
-            color: Theme.of(context).primaryColorDark,
-          ),
-          // splashColor: Theme.of(context).primaryColorDark,
-          // hoverColor: Color(0xFF6200EE).withOpacity(0.5),
-          borderRadius: BorderRadius.circular(10.0),
-          constraints: const BoxConstraints(minHeight: 30.0),
-          children: const [
-            Padding(
-              padding: EdgeInsets.symmetric(horizontal: 10.0),
-              child: Text('LIGHT'),
-            ),
-            Padding(
-              padding: EdgeInsets.symmetric(horizontal: 10.0),
-              child: Text('SYSTEM'),
-            ),
-            Padding(
-              padding: EdgeInsets.symmetric(horizontal: 10.0),
-              child: Text('DARK'),
-            ),
-          ],
-          onPressed: (index) {
-            setState(() {
-              int oldIndex = isButtonSelected.indexOf(true);
-              if (oldIndex != index) {
-                isButtonSelected[oldIndex] = false;
-                isButtonSelected[index] = true;
-              }
-            });
-          },
-          isSelected: isButtonSelected,
-        ),
       ],
     );
   }
@@ -486,20 +487,20 @@ class SolarBackground extends StatelessWidget {
           colors: [
             Colors.black,
             Colors.red,
-            Colors.yellow.shade50.withOpacity(0.75),
+            Colors.yellow.shade50.withOpacity(0.8),
             Colors.yellow.shade50,
-            Colors.yellow.shade50.withOpacity(0.75),
+            Colors.yellow.shade50.withOpacity(0.8),
             Colors.red,
             Colors.black,
           ],
           stops: [
-            (prayerTimes?['Sunrise']?.time ?? 0.25) - 0.01,
             (prayerTimes?['Sunrise']?.time ?? 0.25),
-            (prayerTimes?['Sunrise']?.time ?? 0.25) + 0.01,
+            (prayerTimes?['Sunrise']?.time ?? 0.25) + 3 / 360,
+            (prayerTimes?['Sunrise']?.time ?? 0.25) + 6 / 360,
             (prayerTimes?['Luhar']?.time ?? 0.5),
-            (prayerTimes?['Sunset']?.time ?? 0.75) - 0.01,
+            (prayerTimes?['Sunset']?.time ?? 0.75) - 6 / 360,
+            (prayerTimes?['Sunset']?.time ?? 0.75) - 3 / 360,
             (prayerTimes?['Sunset']?.time ?? 0.75),
-            (prayerTimes?['Sunset']?.time ?? 0.75) + 0.01,
           ],
           transform: const GradientRotation(math.pi / 2),
         ),

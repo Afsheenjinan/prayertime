@@ -4,6 +4,15 @@ import 'dart:math' as math;
 
 double PI = math.pi;
 
+double Average(List<double> list) {
+  double total = 0;
+  for (double item in list) {
+    total += item;
+  }
+
+  return total / list.length;
+}
+
 double Julian(DateTime dateTime,
     {int hour = 0, int minute = 0, double timezone = 0}) {
   int year = dateTime.year;
@@ -43,7 +52,7 @@ double aSin(x) => Degrees(math.asin(x));
 double aCos(x) => Degrees(math.acos(x));
 double aTan(x) => Degrees(math.atan(x));
 
-double aTan2(x, y) => Degrees(math.atan2(x, y));
+double aTan2(y, x) => Degrees(math.atan2(y, x));
 
 Map<String, double> getEquationOfTime(double JC) {
   var Geom_Mean_Long_Sun = (280.46646 + JC * (36000.76983 + JC * 0.0003032)) %
