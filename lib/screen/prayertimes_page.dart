@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:ui';
 import 'package:intl/intl.dart';
 import 'package:flutter/material.dart';
 import 'dart:math' as math;
@@ -62,6 +63,8 @@ class _PrayerTimesPageState extends State<PrayerTimesPage> {
 
   String? defaultMethod;
   String? asrMethod;
+
+  final isButtonSelected = <bool>[false, true, false];
 
   @override
   void initState() {
@@ -340,12 +343,12 @@ class _PrayerTimesPageState extends State<PrayerTimesPage> {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   const Text(
-                    'Asr Shadow',
+                    'Asr method',
                     textAlign: TextAlign.end,
                   ),
                   DropdownButton<String>(
                     dropdownColor: Theme.of(context).primaryColorLight,
-                    isDense: true,
+                    isDense: false,
                     iconSize: 0.0,
                     value: asrMethod,
                     alignment: AlignmentDirectional.centerEnd,
@@ -375,6 +378,43 @@ class _PrayerTimesPageState extends State<PrayerTimesPage> {
               ),
             ],
           ),
+        ),
+        ToggleButtons(
+          color: Colors.black.withOpacity(0.60),
+          // selectedColor: Color(0xFF6200EE),
+          selectedBorderColor: Theme.of(context).primaryColorDark,
+          fillColor: Colors.transparent,
+          textStyle: TextStyle(
+            color: Theme.of(context).primaryColorDark,
+          ),
+          // splashColor: Theme.of(context).primaryColorDark,
+          // hoverColor: Color(0xFF6200EE).withOpacity(0.5),
+          borderRadius: BorderRadius.circular(10.0),
+          constraints: const BoxConstraints(minHeight: 30.0),
+          children: const [
+            Padding(
+              padding: EdgeInsets.symmetric(horizontal: 10.0),
+              child: Text('LIGHT'),
+            ),
+            Padding(
+              padding: EdgeInsets.symmetric(horizontal: 10.0),
+              child: Text('SYSTEM'),
+            ),
+            Padding(
+              padding: EdgeInsets.symmetric(horizontal: 10.0),
+              child: Text('DARK'),
+            ),
+          ],
+          onPressed: (index) {
+            setState(() {
+              int oldIndex = isButtonSelected.indexOf(true);
+              if (oldIndex != index) {
+                isButtonSelected[oldIndex] = false;
+                isButtonSelected[index] = true;
+              }
+            });
+          },
+          isSelected: isButtonSelected,
         ),
       ],
     );

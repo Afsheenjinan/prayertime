@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:geocoding/geocoding.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-
+import 'package:permission_handler/permission_handler.dart';
 import 'prayertimes_page.dart';
 import 'qibla_page.dart';
 import 'dua_page.dart';
@@ -31,6 +31,9 @@ class _HomescreenState extends State<Homescreen> {
 
   PageController pageController = PageController();
 
+  String locationMessage = '';
+  bool isPermanentlyDenied = false;
+
   @override
   void initState() {
     super.initState();
@@ -41,21 +44,24 @@ class _HomescreenState extends State<Homescreen> {
   Future<void> _updatePosition() async {
     // LocationData locationData = await _determinePosition();
     sharedPreferences = await SharedPreferences.getInstance();
-    Position? lastKnownPosition = await Geolocator.getLastKnownPosition();
+    // Position? lastKnownPosition = await Geolocator.getLastKnownPosition();
     Position locationData = await _determinePosition();
+    // bool? status = await Permission.location.isPermanentlyDenied;
 
     List<Placemark> placeMark = await placemarkFromCoordinates(
         locationData.latitude, locationData.longitude);
     Placemark place = placeMark[0];
 
     setState(() {
+      // isPermanentlyDenied = status;
       _address = '${place.locality}, ${place.country}';
 
-      _latitude ??= lastKnownPosition?.latitude;
-      _longitude ??= lastKnownPosition?.longitude;
+      // _latitude ??= lastKnownPosition?.latitude;
+      // _longitude ??= lastKnownPosition?.longitude;
 
       _latitude = locationData.latitude;
       _longitude = locationData.longitude;
+
       pages = [
         PrayerTimesPage(
           sharedPreferences: sharedPreferences,
@@ -76,26 +82,32 @@ class _HomescreenState extends State<Homescreen> {
 
   Future<Position> _determinePosition() async {
     bool serviceEnabled;
-    LocationPermission permission;
-
-    // Test if location services are enabled.
+    LocationPermission permissionStatus;
     serviceEnabled = await Geolocator.isLocationServiceEnabled();
     if (!serviceEnabled) {
+      locationMessage = 'Location services are disabled.';
       // Location services are not enabled don't continue accessing the position and request users of the  App to enable the location services.
       return Future.error('Location services are disabled.');
     }
 
-    permission = await Geolocator.checkPermission();
-    if (permission == LocationPermission.denied) {
-      permission = await Geolocator.requestPermission();
-      if (permission == LocationPermission.denied) {
+    permissionStatus = await Geolocator.checkPermission();
+
+    if (permissionStatus == LocationPermission.denied) {
+      setState(() => locationMessage = 'Requesting Permission.');
+      permissionStatus = await Geolocator.requestPermission();
+      if (permissionStatus == LocationPermission.denied) {
+        setState(() => locationMessage = 'Location permissions are denied.');
+
         // Permissions are denied, next time you could try requesting permissions again (this is also where Android's shouldShowRequestPermissionRationale returned true.
         // According to Android guidelines your App should show an explanatory UI now.
         return Future.error('Location permissions are denied');
       }
     }
+    if (permissionStatus == LocationPermission.deniedForever) {
+      setState(() =>
+          locationMessage = 'Location permissions are permanently denied.');
+      isPermanentlyDenied = true;
 
-    if (permission == LocationPermission.deniedForever) {
       // Permissions are denied forever, handle appropriately.
       return Future.error(
           'Location permissions are permanently denied, we cannot request permissions.');
@@ -154,16 +166,38 @@ class _HomescreenState extends State<Homescreen> {
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
+                    const Spacer(),
                     Text('ٱلسَّلَامُ عَلَيْكُمْ',
-                        style: Theme.of(context).textTheme.headline6),
+                        style: Theme.of(context).textTheme.headline4),
                     Text('وَرَحْمَةُ ٱللَّٰهِ',
-                        style: Theme.of(context).textTheme.headline6),
+                        style: Theme.of(context).textTheme.headline4),
                     Text('وَبَرَكَاتُهُ',
-                        style: Theme.of(context).textTheme.headline6),
+                        style: Theme.of(context).textTheme.headline4),
+                    const Spacer(),
+                    Text(locationMessage),
+                    const SizedBox(height: 20),
+                    isPermanentlyDenied
+                        ? Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: <Widget>[
+                              ElevatedButton(
+                                // permission_handler
+                                onPressed: openApplicationSettings,
+                                child: const Text('Open App Settings'),
+                              ),
+                            ],
+                          )
+                        : const SizedBox.shrink(),
+                    const Spacer(),
                   ],
                 ),
               ),
             ),
     );
+  }
+
+  void openApplicationSettings() async {
+    await openAppSettings();
+    _updatePosition();
   }
 }
