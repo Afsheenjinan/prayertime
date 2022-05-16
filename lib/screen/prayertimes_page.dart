@@ -71,7 +71,7 @@ class _PrayerTimesPageState extends State<PrayerTimesPage> {
 
     _nowHourAngle = (_now.hour + _now.minute / 60) / 24;
     _timeZone = _now.timeZoneOffset.inMinutes / 60;
-    _solarData = getEquationOfTime(JulianCentury(Julian(_now, hour: 12)));
+    _solarData = getEquationOfTime(JulianCentury(Julian(_now.toUtc())));
     _equationOfTime = _solarData?['Equation of Time'];
     _sunDeclination = _solarData?['Sun Declination'];
     _timer =
@@ -268,8 +268,13 @@ class _PrayerTimesPageState extends State<PrayerTimesPage> {
           padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
           child: Row(
             children: [
-              Text(DateFormat('yyyy-MM-dd').format(_now),
-                  style: Theme.of(context).textTheme.headline6),
+              Column(
+                children: [
+                  Text(DateFormat('yyyy-MM-dd').format(_now),
+                      style: Theme.of(context).textTheme.headline6),
+                  Text(DateFormat('EEEE').format(_now)),
+                ],
+              ),
               const Flexible(
                 fit: FlexFit.tight,
                 child: Text(
@@ -333,7 +338,6 @@ class _PrayerTimesPageState extends State<PrayerTimesPage> {
         Container(
           margin: const EdgeInsets.symmetric(horizontal: 20),
           child: Column(
-            // mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: [
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -348,7 +352,7 @@ class _PrayerTimesPageState extends State<PrayerTimesPage> {
                   DropdownButton<String>(
                     dropdownColor: Theme.of(context).primaryColorLight,
                     // isDense: true,
-                    iconSize: 0.0,
+                    // iconSize: 15,
                     value: defaultMethod,
                     alignment: AlignmentDirectional.centerEnd,
                     items: methods.keys.map<DropdownMenuItem<String>>(
@@ -387,7 +391,7 @@ class _PrayerTimesPageState extends State<PrayerTimesPage> {
                   DropdownButton<String>(
                     dropdownColor: Theme.of(context).primaryColorLight,
                     isDense: false,
-                    iconSize: 0.0,
+                    // iconSize: 0.0,
                     value: asrMethod,
                     alignment: AlignmentDirectional.centerEnd,
                     items: ["Standard", "Hanafi"].map<DropdownMenuItem<String>>(
