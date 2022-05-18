@@ -19,6 +19,7 @@ class Homescreen extends StatefulWidget {
 class _HomescreenState extends State<Homescreen> {
   int _currentIndex = 0;
   late List<Widget> pages;
+  final PageStorageBucket _pageStorageBucket = PageStorageBucket();
 
   double? _latitude;
   double? _longitude;
@@ -48,8 +49,7 @@ class _HomescreenState extends State<Homescreen> {
     Position locationData = await _determinePosition();
     // bool? status = await Permission.location.isPermanentlyDenied;
 
-    List<Placemark> placeMark = await placemarkFromCoordinates(
-        locationData.latitude, locationData.longitude);
+    List<Placemark> placeMark = await placemarkFromCoordinates(locationData.latitude, locationData.longitude);
     Placemark place = placeMark[0];
 
     setState(() {
@@ -74,6 +74,7 @@ class _HomescreenState extends State<Homescreen> {
           longitude: _longitude,
         ),
         DuaPage(
+          key: PageStorageKey('duaPageKey'),
           sharedPreferences: sharedPreferences,
         )
       ];
@@ -96,8 +97,8 @@ class _HomescreenState extends State<Homescreen> {
       setState(() => locationMessage = 'Requesting Permission.');
       permissionStatus = await Geolocator.requestPermission();
       if (permissionStatus == LocationPermission.denied) {
-        setState(() => locationMessage =
-            'Location permissions are denied.\nCalculations are based on location.\nPlease allow access to Course Location');
+        setState(
+            () => locationMessage = 'Location permissions are denied.\nCalculations are based on location.\nPlease allow access to Course Location');
         isPermanentlyDenied = true;
 
         // Permissions are denied, next time you could try requesting permissions again (this is also where Android's shouldShowRequestPermissionRationale returned true.
@@ -111,13 +112,11 @@ class _HomescreenState extends State<Homescreen> {
       isPermanentlyDenied = true;
 
       // Permissions are denied forever, handle appropriately.
-      return Future.error(
-          'Location permissions are permanently denied, we cannot request permissions.');
+      return Future.error('Location permissions are permanently denied, we cannot request permissions.');
     }
 
     // When we reach here, permissions are granted and we can continue accessing the position of the device.
-    return await Geolocator.getCurrentPosition(
-        desiredAccuracy: LocationAccuracy.low);
+    return await Geolocator.getCurrentPosition(desiredAccuracy: LocationAccuracy.low);
   }
 
   void _onItemTapped(int index) {
@@ -142,22 +141,19 @@ class _HomescreenState extends State<Homescreen> {
     return SafeArea(
       child: (_latitude != null && sharedPreferences != null)
           ? Scaffold(
-              body: PageView(
-                children: pages,
-                controller: pageController,
-                onPageChanged: onPageChanged,
+              body: PageStorage(
+                bucket: _pageStorageBucket,
+                child: PageView(
+                  children: pages,
+                  controller: pageController,
+                  onPageChanged: onPageChanged,
+                ),
               ),
               bottomNavigationBar: BottomNavigationBar(
                 items: const [
-                  BottomNavigationBarItem(
-                      icon: Icon(Icons.access_alarm_rounded),
-                      label: 'PrayerTimes'),
-                  BottomNavigationBarItem(
-                      icon: ImageIcon(AssetImage("assets/images/qibla_32.png")),
-                      label: 'Qibla'),
-                  BottomNavigationBarItem(
-                      icon: ImageIcon(AssetImage("assets/images/dua_32.png")),
-                      label: 'Dua'),
+                  BottomNavigationBarItem(icon: Icon(Icons.access_alarm_rounded), label: 'PrayerTimes'),
+                  BottomNavigationBarItem(icon: ImageIcon(AssetImage("assets/images/qibla_32.png")), label: 'Qibla'),
+                  BottomNavigationBarItem(icon: ImageIcon(AssetImage("assets/images/dua_32.png")), label: 'Dua'),
                 ],
                 currentIndex: _currentIndex,
                 onTap: _onItemTapped,
@@ -169,12 +165,9 @@ class _HomescreenState extends State<Homescreen> {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     const Spacer(),
-                    Text('ٱلسَّلَامُ عَلَيْكُمْ',
-                        style: Theme.of(context).textTheme.headline4),
-                    Text('وَرَحْمَةُ ٱللَّٰهِ',
-                        style: Theme.of(context).textTheme.headline4),
-                    Text('وَبَرَكَاتُهُ',
-                        style: Theme.of(context).textTheme.headline4),
+                    Text('ٱلسَّلَامُ عَلَيْكُمْ', style: Theme.of(context).textTheme.headline4),
+                    Text('وَرَحْمَةُ ٱللَّٰهِ', style: Theme.of(context).textTheme.headline4),
+                    Text('وَبَرَكَاتُهُ', style: Theme.of(context).textTheme.headline4),
                     const Spacer(),
                     Text(locationMessage),
                     const SizedBox(height: 20),
