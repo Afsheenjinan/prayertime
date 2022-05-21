@@ -7,12 +7,7 @@ import '../functions/functions.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class PrayerTimesPage extends StatefulWidget {
-  const PrayerTimesPage(
-      {Key? key,
-      required this.latitude,
-      required this.longitude,
-      required this.address,
-      required this.sharedPreferences})
+  const PrayerTimesPage({Key? key, required this.latitude, required this.longitude, required this.address, required this.sharedPreferences})
       : super(key: key);
   final double? latitude;
   final double? longitude;
@@ -47,16 +42,7 @@ class _PrayerTimesPageState extends State<PrayerTimesPage> {
     "Isha": Data(icon: Icons.mode_night_rounded),
     "Midnight": Data(icon: Icons.night_shelter_rounded)
   };
-  List<String> prayerList = [
-    'Imsak',
-    'Fajr',
-    'Sunrise',
-    'Luhar',
-    'Asr',
-    'Maghrib',
-    'Isha',
-    'Midnight'
-  ];
+  List<String> prayerList = ['Imsak', 'Fajr', 'Sunrise', 'Luhar', 'Asr', 'Maghrib', 'Isha', 'Midnight'];
 
   Map<String, Data>? prayertimesdata;
 
@@ -74,18 +60,13 @@ class _PrayerTimesPageState extends State<PrayerTimesPage> {
     _solarData = getEquationOfTime(JulianCentury(Julian(_now.toUtc())));
     _equationOfTime = _solarData?['Equation of Time'];
     _sunDeclination = _solarData?['Sun Declination'];
-    _timer =
-        Timer.periodic(const Duration(seconds: 1), (Timer timer) => _getTime());
+    _timer = Timer.periodic(const Duration(seconds: 1), (Timer timer) => _getTime());
 
     setState(() {
-      defaultMethod =
-          widget.sharedPreferences?.getString('defaultMethod') ?? 'MWL';
-      asrMethod =
-          widget.sharedPreferences?.getString('asrMethod') ?? 'Standard';
+      defaultMethod = widget.sharedPreferences?.getString('defaultMethod') ?? 'MWL';
+      asrMethod = widget.sharedPreferences?.getString('asrMethod') ?? 'Standard';
 
-      _solarNoon =
-          (720 - 4 * widget.longitude! - _equationOfTime! + _timeZone! * 60) /
-              (24 * 60);
+      _solarNoon = (720 - 4 * widget.longitude! - _equationOfTime! + _timeZone! * 60) / (24 * 60);
       getdata();
     });
     // _getSharedPreferences();
@@ -109,9 +90,7 @@ class _PrayerTimesPageState extends State<PrayerTimesPage> {
   }
 
   double calculateTime(double angle) {
-    return aCos(Sin(angle) / (Cos(widget.latitude!) * Cos(_sunDeclination!)) -
-            Tan(widget.latitude!) * Tan(_sunDeclination!)) *
-        (4 / (24 * 60));
+    return aCos(Sin(angle) / (Cos(widget.latitude!) * Cos(_sunDeclination!)) - Tan(widget.latitude!) * Tan(_sunDeclination!)) * (4 / (24 * 60));
   }
 
   double? calculateHourAngle(String prayerName) {
@@ -123,12 +102,10 @@ class _PrayerTimesPageState extends State<PrayerTimesPage> {
       direction = ["Fajr", "Sunrise"].contains(prayerName) ? -1 : 1;
       switch (prayerName) {
         case 'Imsak':
-          hourAngle =
-              calculateHourAngle("Fajr")! - 10.0 / (60 * 24); // 10 mins less
+          hourAngle = calculateHourAngle("Fajr")! - 10.0 / (60 * 24); // 10 mins less
           break;
         case 'Fajr':
-          hourAngle = direction *
-              calculateTime(-methods[defaultMethod]["angle"]["Fajr"]);
+          hourAngle = direction * calculateTime(-methods[defaultMethod]["angle"]["Fajr"]);
           break;
         case 'Noon':
           hourAngle = 0;
@@ -139,8 +116,7 @@ class _PrayerTimesPageState extends State<PrayerTimesPage> {
         case 'Asr':
           int shadowFacor = asrMethod != "Hanafi" ? 1 : 2;
           double deltaAngle = (widget.latitude! - _sunDeclination!).abs();
-          hourAngle = direction *
-              calculateTime(aTan(1 / (shadowFacor + Tan(deltaAngle))));
+          hourAngle = direction * calculateTime(aTan(1 / (shadowFacor + Tan(deltaAngle))));
           break;
         case 'Maghrib':
           hourAngle = (defaultMethod == "Tehran"
@@ -150,17 +126,11 @@ class _PrayerTimesPageState extends State<PrayerTimesPage> {
                   : calculateHourAngle("Sunset"))!;
           break;
         case 'Isha':
-          hourAngle = defaultMethod != "Makkah"
-              ? calculateTime(-methods[defaultMethod]["angle"]["Isha"])
-              : calculateHourAngle("Maghrib")! + 1.5 / 24;
+          hourAngle = defaultMethod != "Makkah" ? calculateTime(-methods[defaultMethod]["angle"]["Isha"]) : calculateHourAngle("Maghrib")! + 1.5 / 24;
           break;
         case 'Midnight':
-          String morning =
-              ["Tehran", "Jafari"].contains(defaultMethod) ? "Fajr" : "Sunrise";
-          hourAngle = (1 +
-                  calculateHourAngle(morning)! +
-                  calculateHourAngle("Sunset")!) /
-              2;
+          String morning = ["Tehran", "Jafari"].contains(defaultMethod) ? "Fajr" : "Sunrise";
+          hourAngle = (1 + calculateHourAngle(morning)! + calculateHourAngle("Sunset")!) / 2;
           break;
         default:
           hourAngle = direction * calculateTime(-horizontalParrallax);
@@ -201,45 +171,7 @@ class _PrayerTimesPageState extends State<PrayerTimesPage> {
         const SizedBox(
           height: 10,
         ),
-        // ToggleButtons(
-        //   color: Colors.black.withOpacity(0.60),
-        //   // selectedColor: Color(0xFF6200EE),
-        //   selectedBorderColor: Theme.of(context).primaryColorDark,
-        //   fillColor: Colors.transparent,
-        //   textStyle: TextStyle(
-        //     color: Theme.of(context).primaryColorDark,
-        //   ),
-        //   // splashColor: Theme.of(context).primaryColorDark,
-        //   // hoverColor: Color(0xFF6200EE).withOpacity(0.5),
-        //   borderRadius: BorderRadius.circular(10.0),
-        //   constraints: BoxConstraints(
-        //       minHeight: 30.0,
-        //       minWidth: (MediaQuery.of(context).size.width - 72) / 3),
-        //   children: const [
-        //     Padding(
-        //       padding: EdgeInsets.symmetric(horizontal: 10.0),
-        //       child: Text('LIGHT'),
-        //     ),
-        //     Padding(
-        //       padding: EdgeInsets.symmetric(horizontal: 10.0),
-        //       child: Text('SYSTEM'),
-        //     ),
-        //     Padding(
-        //       padding: EdgeInsets.symmetric(horizontal: 10.0),
-        //       child: Text('DARK'),
-        //     ),
-        //   ],
-        //   onPressed: (index) {
-        //     setState(() {
-        //       int oldIndex = isButtonSelected.indexOf(true);
-        //       if (oldIndex != index) {
-        //         isButtonSelected[oldIndex] = false;
-        //         isButtonSelected[index] = true;
-        //       }
-        //     });
-        //   },
-        //   isSelected: isButtonSelected,
-        // ),
+        
         Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
@@ -247,9 +179,7 @@ class _PrayerTimesPageState extends State<PrayerTimesPage> {
               Icons.location_on_outlined,
               size: 15,
               semanticLabel: 'Location',
-              color: widget.latitude == null
-                  ? Theme.of(context).scaffoldBackgroundColor
-                  : Colors.green,
+              color: widget.latitude == null ? Theme.of(context).scaffoldBackgroundColor : Colors.green,
             ),
             const SizedBox(
               width: 10,
@@ -270,8 +200,7 @@ class _PrayerTimesPageState extends State<PrayerTimesPage> {
             children: [
               Column(
                 children: [
-                  Text(DateFormat('yyyy-MM-dd').format(_now),
-                      style: Theme.of(context).textTheme.headline6),
+                  Text(DateFormat('yyyy-MM-dd').format(_now), style: Theme.of(context).textTheme.headline6),
                   Text(DateFormat('EEEE').format(_now)),
                 ],
               ),
@@ -281,8 +210,7 @@ class _PrayerTimesPageState extends State<PrayerTimesPage> {
                   '',
                 ),
               ),
-              Text(DateFormat('hh:mm:ss a').format(_now),
-                  style: Theme.of(context).textTheme.headline6)
+              Text(DateFormat('hh:mm:ss a').format(_now), style: Theme.of(context).textTheme.headline6)
             ],
           ),
         ),
@@ -306,8 +234,7 @@ class _PrayerTimesPageState extends State<PrayerTimesPage> {
                     )
                   ],
                 ),
-                margin:
-                    const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
                 padding: const EdgeInsets.all(8),
                 child: IntrinsicHeight(
                   child: Row(
@@ -325,8 +252,7 @@ class _PrayerTimesPageState extends State<PrayerTimesPage> {
                       ),
                       const VerticalDivider(),
                       Text(
-                        prayerTimes[prayerList[index]]?.hour12 ??
-                            '- - : - -  - -',
+                        prayerTimes[prayerList[index]]?.hour12 ?? '- - : - -  - -',
                       ),
                     ],
                   ),
@@ -346,9 +272,6 @@ class _PrayerTimesPageState extends State<PrayerTimesPage> {
                     'Based on',
                     textAlign: TextAlign.end,
                   ),
-                  const SizedBox(
-                    width: 20,
-                  ),
                   DropdownButton<String>(
                     dropdownColor: Theme.of(context).primaryColorLight,
                     // isDense: true,
@@ -365,12 +288,9 @@ class _PrayerTimesPageState extends State<PrayerTimesPage> {
                     ).toList(),
                     borderRadius: const BorderRadius.all(Radius.circular(10)),
                     underline: const SizedBox.shrink(),
-                    style: TextStyle(
-                        color: Theme.of(context).primaryColorDark,
-                        fontSize: 12),
+                    style: TextStyle(color: Theme.of(context).primaryColorDark, fontSize: 12),
                     onChanged: (String? string) async {
-                      widget.sharedPreferences
-                          ?.setString('defaultMethod', string!);
+                      widget.sharedPreferences?.setString('defaultMethod', string!);
                       setState(() {
                         String? olddefaultMethod = defaultMethod;
                         defaultMethod = string;
@@ -404,9 +324,7 @@ class _PrayerTimesPageState extends State<PrayerTimesPage> {
                     ).toList(),
                     borderRadius: const BorderRadius.all(Radius.circular(10)),
                     underline: const SizedBox.shrink(),
-                    style: TextStyle(
-                        color: Theme.of(context).primaryColorDark,
-                        fontSize: 12),
+                    style: TextStyle(color: Theme.of(context).primaryColorDark, fontSize: 12),
                     onChanged: (String? string) async {
                       widget.sharedPreferences?.setString('asrMethod', string!);
                       setState(() {
@@ -443,16 +361,13 @@ class Sun extends StatelessWidget {
   Widget build(BuildContext context) {
     return Positioned(
       top: (100 - 16) / 2 * (1 + Cos(_nowHourAngle! * 360)),
-      left: (MediaQuery.of(context).size.width - 40 - 16) /
-          2 *
-          (1 + Sin(-_nowHourAngle! * 360)),
+      left: (MediaQuery.of(context).size.width - 40 - 16) / 2 * (1 + Sin(-_nowHourAngle! * 360)),
       child: Container(
         height: 16,
         width: 16,
         decoration: BoxDecoration(
           borderRadius: const BorderRadius.all(Radius.circular(8)),
-          color: (_nowHourAngle! > (prayerTimes['Sunrise']?.time ?? 0.25)) &
-                  (_nowHourAngle! < (prayerTimes['Sunset']?.time ?? 0.75))
+          color: (_nowHourAngle! > (prayerTimes['Sunrise']?.time ?? 0.25)) & (_nowHourAngle! < (prayerTimes['Sunset']?.time ?? 0.75))
               ? Colors.yellow.shade500
               : Colors.orange,
           boxShadow: [
