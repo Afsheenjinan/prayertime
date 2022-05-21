@@ -74,7 +74,7 @@ class _HomescreenState extends State<Homescreen> {
           longitude: _longitude,
         ),
         DuaPage(
-          key: PageStorageKey('duaPageKey'),
+          key: const PageStorageKey('duaPageKey'),
           sharedPreferences: sharedPreferences,
         )
       ];
@@ -140,6 +140,7 @@ class _HomescreenState extends State<Homescreen> {
   Widget build(BuildContext context) {
     return SafeArea(
       child: (_latitude != null && sharedPreferences != null)
+          // child: true
           ? Scaffold(
               body: PageStorage(
                 bucket: _pageStorageBucket,
@@ -153,6 +154,7 @@ class _HomescreenState extends State<Homescreen> {
                 items: const [
                   BottomNavigationBarItem(icon: Icon(Icons.access_alarm_rounded), label: 'PrayerTimes'),
                   BottomNavigationBarItem(icon: ImageIcon(AssetImage("assets/images/qibla_32.png")), label: 'Qibla'),
+                  // BottomNavigationBarItem(icon: Text(String.fromCharCodes(Runes('\u{1F932}'))), label: 'Dua'),
                   BottomNavigationBarItem(icon: ImageIcon(AssetImage("assets/images/dua_32.png")), label: 'Dua'),
                 ],
                 currentIndex: _currentIndex,
