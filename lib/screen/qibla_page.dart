@@ -2,16 +2,15 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:prayertime/functions/functions.dart';
+import 'package:prayertime/screen/home_screen.dart';
 import 'package:sensors_plus/sensors_plus.dart';
 
 class QiblaPage extends StatefulWidget {
+  final LocationData locationData;
   const QiblaPage({
     Key? key,
-    required this.latitude,
-    required this.longitude,
+    required this.locationData,
   }) : super(key: key);
-  final double? latitude;
-  final double? longitude;
 
   @override
   State<QiblaPage> createState() => _QiblaPageState();
@@ -35,10 +34,12 @@ class _QiblaPageState extends State<QiblaPage> {
   @override
   void initState() {
     super.initState();
+    final double _latitude = widget.locationData.position.latitude;
+    final double _longitude = widget.locationData.position.longitude;
 
-    distanceInMeters = Geolocator.distanceBetween(widget.latitude!, widget.longitude!, _latitudeMakka, _longitudeMakka);
+    distanceInMeters = Geolocator.distanceBetween(_latitude, _longitude, _latitudeMakka, _longitudeMakka);
 
-    bearingInAngle = Geolocator.bearingBetween(widget.latitude!, widget.longitude!, _latitudeMakka, _longitudeMakka);
+    bearingInAngle = Geolocator.bearingBetween(_latitude, _longitude, _latitudeMakka, _longitudeMakka);
 
     magnetometer = magnetometerEvents.listen((MagnetometerEvent event) {
       setState(() {
@@ -56,9 +57,7 @@ class _QiblaPageState extends State<QiblaPage> {
 
         // TODO: Find Yaw Pitch Roll
 
-        datalist.insert(0, phi);
-        datalist.removeLast();
-        northAngle = Average(datalist);
+        northAngle = phi;
         qiblaAngleToTop = (northAngle + bearingInAngle!) % 360;
         qiblaAngleDispay = 180 - (qiblaAngleToTop - 180).abs();
       });

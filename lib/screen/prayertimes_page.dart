@@ -1,17 +1,14 @@
 import 'dart:async';
-import 'package:intl/intl.dart';
-import 'package:flutter/material.dart';
-import 'dart:math' as math;
 import '../data/data.dart';
+import 'package:intl/intl.dart';
 import '../functions/functions.dart';
+import 'package:flutter/material.dart';
+import 'package:prayertime/screen/home_screen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class PrayerTimesPage extends StatefulWidget {
-  const PrayerTimesPage({Key? key, required this.latitude, required this.longitude, required this.address, required this.sharedPreferences})
-      : super(key: key);
-  final double? latitude;
-  final double? longitude;
-  final String? address;
+  const PrayerTimesPage({Key? key, required this.sharedPreferences, required this.locationData}) : super(key: key);
+  final LocationData locationData;
   final SharedPreferences? sharedPreferences;
 
   @override
@@ -19,15 +16,16 @@ class PrayerTimesPage extends StatefulWidget {
 }
 
 class _PrayerTimesPageState extends State<PrayerTimesPage> {
+  double _latitude = 0;
+  double _longitude = 0;
+  String _address = '';
+
   Timer? _timer;
   DateTime _now = DateTime.now();
   double? _nowHourAngle;
   double horizontalParrallax = 34 / 60 + 16 / 60; // 0.833°
 
-  Map<String, double>? _solarData;
   double? _sunDeclination;
-  double? _equationOfTime;
-  double? _timeZone;
 
   double? _solarNoon;
   Map<String, Data> prayerTimes = {
@@ -49,32 +47,30 @@ class _PrayerTimesPageState extends State<PrayerTimesPage> {
   String? defaultMethod;
   String? asrMethod;
 
-  final isButtonSelected = <bool>[false, true, false];
+  // final isButtonSelected = <bool>[false, true, false];
 
   @override
   void initState() {
     super.initState();
-
+    _latitude = widget.locationData.position.latitude;
+    _longitude = widget.locationData.position.longitude;
+    _address = '${widget.locationData.placemark.locality}, ${widget.locationData.placemark.country}';
     _nowHourAngle = (_now.hour + _now.minute / 60) / 24;
-    _timeZone = _now.timeZoneOffset.inMinutes / 60;
-    _solarData = getEquationOfTime(JulianCentury(Julian(_now.toUtc())));
-    _equationOfTime = _solarData?['Equation of Time'];
-    _sunDeclination = _solarData?['Sun Declination'];
+
+    double _timeZone = _now.timeZoneOffset.inMinutes / 60;
+    Map<String, double> _solarData = getEquationOfTime(JulianCentury(Julian(_now.toUtc())));
+    double? _equationOfTime = _solarData['Equation of Time'];
+    _sunDeclination = _solarData['Sun Declination'];
+
     _timer = Timer.periodic(const Duration(seconds: 1), (Timer timer) => _getTime());
 
     setState(() {
       defaultMethod = widget.sharedPreferences?.getString('defaultMethod') ?? 'MWL';
       asrMethod = widget.sharedPreferences?.getString('asrMethod') ?? 'Standard';
-
-      _solarNoon = (720 - 4 * widget.longitude! - _equationOfTime! + _timeZone! * 60) / (24 * 60);
+      _solarNoon = (720 - 4 * _longitude - _equationOfTime! + _timeZone * 60) / (24 * 60);
       getdata();
     });
-    // _getSharedPreferences();
   }
-
-  // Future<void> _getSharedPreferences() async {
-  //   SharedPreferences sharedPreferences = await SharedPreferences.getInstance();
-  // }
 
   @override
   void dispose() {
@@ -90,7 +86,7 @@ class _PrayerTimesPageState extends State<PrayerTimesPage> {
   }
 
   double calculateTime(double angle) {
-    return aCos(Sin(angle) / (Cos(widget.latitude!) * Cos(_sunDeclination!)) - Tan(widget.latitude!) * Tan(_sunDeclination!)) * (4 / (24 * 60));
+    return aCos(Sin(angle) / (Cos(_latitude) * Cos(_sunDeclination!)) - Tan(_latitude) * Tan(_sunDeclination!)) * (4 / (24 * 60));
   }
 
   double? calculateHourAngle(String prayerName) {
@@ -115,7 +111,7 @@ class _PrayerTimesPageState extends State<PrayerTimesPage> {
           break;
         case 'Asr':
           int shadowFacor = asrMethod != "Hanafi" ? 1 : 2;
-          double deltaAngle = (widget.latitude! - _sunDeclination!).abs();
+          double deltaAngle = (_latitude - _sunDeclination!).abs();
           hourAngle = direction * calculateTime(aTan(1 / (shadowFacor + Tan(deltaAngle))));
           break;
         case 'Maghrib':
@@ -171,20 +167,19 @@ class _PrayerTimesPageState extends State<PrayerTimesPage> {
         const SizedBox(
           height: 10,
         ),
-        
         Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(
+            const Icon(
               Icons.location_on_outlined,
               size: 15,
               semanticLabel: 'Location',
-              color: widget.latitude == null ? Theme.of(context).scaffoldBackgroundColor : Colors.green,
+              color: Colors.green,
             ),
             const SizedBox(
               width: 10,
             ),
-            Text('${widget.address}'),
+            Text(_address),
           ],
         ),
         Stack(
@@ -421,7 +416,7 @@ class SolarBackground extends StatelessWidget {
             (prayerTimes?['Sunset']?.time ?? 0.75) - 3 / 360,
             (prayerTimes?['Sunset']?.time ?? 0.75),
           ],
-          transform: const GradientRotation(math.pi / 2),
+          transform: GradientRotation(PI / 2),
         ),
         boxShadow: [
           BoxShadow(

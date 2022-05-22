@@ -2,10 +2,15 @@ import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:geocoding/geocoding.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:permission_handler/permission_handler.dart';
 import 'prayertimes_page.dart';
 import 'qibla_page.dart';
 import 'dua_page.dart';
+
+class LocationData {
+  final Placemark placemark;
+  final Position position;
+  LocationData({required this.position, required this.placemark});
+}
 
 class Homescreen extends StatefulWidget {
   const Homescreen({
@@ -16,106 +21,90 @@ class Homescreen extends StatefulWidget {
   State<Homescreen> createState() => _HomescreenState();
 }
 
-class _HomescreenState extends State<Homescreen> {
+class _HomescreenState extends State<Homescreen> with WidgetsBindingObserver {
   int _currentIndex = 0;
   late List<Widget> pages;
   final PageStorageBucket _pageStorageBucket = PageStorageBucket();
-
-  double? _latitude;
-  double? _longitude;
-  String _address = '';
-
-  double distanceInMeters = 0.0;
-  double bearingInAngle = 0.0;
 
   SharedPreferences? sharedPreferences;
 
   PageController pageController = PageController();
 
-  String locationMessage = '';
-  bool isPermanentlyDenied = false;
+  bool isLocationServiceEnabled = false;
+  LocationPermission permissionStatus = LocationPermission.denied;
+
+  Future<LocationData>? _future;
 
   @override
   void initState() {
     super.initState();
-
-    _updatePosition();
+    WidgetsBinding.instance?.addObserver(this);
+    _future = _updatePosition();
   }
 
-  Future<void> _updatePosition() async {
-    // LocationData locationData = await _determinePosition();
-    sharedPreferences = await SharedPreferences.getInstance();
-    // Position? lastKnownPosition = await Geolocator.getLastKnownPosition();
-    Position locationData = await _determinePosition();
-    // bool? status = await Permission.location.isPermanentlyDenied;
+  @override
+  void dispose() {
+    WidgetsBinding.instance?.removeObserver(this);
+    super.dispose();
+  }
 
-    List<Placemark> placeMark = await placemarkFromCoordinates(locationData.latitude, locationData.longitude);
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    switch (state) {
+      case AppLifecycleState.resumed:
+        setState(() {
+          _future = _updatePosition();
+        });
+        break;
+      case AppLifecycleState.inactive:
+        break;
+      case AppLifecycleState.paused:
+        break;
+      case AppLifecycleState.detached:
+        break;
+    }
+  }
+
+  Future<LocationData> _updatePosition() async {
+    sharedPreferences = await SharedPreferences.getInstance();
+    Position position = await _determinePosition();
+    List<Placemark> placeMark = await placemarkFromCoordinates(position.latitude, position.longitude);
     Placemark place = placeMark[0];
 
+    LocationData locationData = LocationData(position: position, placemark: place);
     setState(() {
-      // isPermanentlyDenied = status;
-      _address = '${place.locality}, ${place.country}';
-
-      // _latitude ??= lastKnownPosition?.latitude;
-      // _longitude ??= lastKnownPosition?.longitude;
-
-      _latitude = locationData.latitude;
-      _longitude = locationData.longitude;
-
       pages = [
         PrayerTimesPage(
           sharedPreferences: sharedPreferences,
-          latitude: _latitude,
-          longitude: _longitude,
-          address: _address,
+          locationData: locationData,
         ),
-        QiblaPage(
-          latitude: _latitude,
-          longitude: _longitude,
-        ),
+        QiblaPage(locationData: locationData),
         DuaPage(
           key: const PageStorageKey('duaPageKey'),
           sharedPreferences: sharedPreferences,
         )
       ];
     });
+    return locationData;
   }
 
   Future<Position> _determinePosition() async {
-    bool serviceEnabled;
-    LocationPermission permissionStatus;
-    serviceEnabled = await Geolocator.isLocationServiceEnabled();
-    if (!serviceEnabled) {
-      locationMessage = 'Location services are disabled.';
-      // Location services are not enabled don't continue accessing the position and request users of the  App to enable the location services.
-      return Future.error('Location services are disabled.');
+    isLocationServiceEnabled = await Geolocator.isLocationServiceEnabled();
+    if (!isLocationServiceEnabled) {
+      return Future.error('Location services are disabled.\n\nNeed Location for calculations');
     }
 
     permissionStatus = await Geolocator.checkPermission();
 
     if (permissionStatus == LocationPermission.denied) {
-      setState(() => locationMessage = 'Requesting Permission.');
       permissionStatus = await Geolocator.requestPermission();
       if (permissionStatus == LocationPermission.denied) {
-        setState(
-            () => locationMessage = 'Location permissions are denied.\nCalculations are based on location.\nPlease allow access to Course Location');
-        isPermanentlyDenied = true;
-
-        // Permissions are denied, next time you could try requesting permissions again (this is also where Android's shouldShowRequestPermissionRationale returned true.
-        // According to Android guidelines your App should show an explanatory UI now.
-        return Future.error('Location permissions are denied');
+        return Future.error('Location permissions are denied.\nCalculations are based on location.\nPlease allow access to Course Location');
       }
     }
     if (permissionStatus == LocationPermission.deniedForever) {
-      setState(() => locationMessage =
-          'Location permissions are permanently denied.\nCalculations are based on location.\nPlease allow access to Course Location');
-      isPermanentlyDenied = true;
-
-      // Permissions are denied forever, handle appropriately.
-      return Future.error('Location permissions are permanently denied, we cannot request permissions.');
+      return Future.error('Location permissions are permanently denied.\nCalculations are based on location.\nApp cannot be used');
     }
-
-    // When we reach here, permissions are granted and we can continue accessing the position of the device.
     return await Geolocator.getCurrentPosition(desiredAccuracy: LocationAccuracy.low);
   }
 
@@ -139,62 +128,80 @@ class _HomescreenState extends State<Homescreen> {
   @override
   Widget build(BuildContext context) {
     return SafeArea(
-      child: (_latitude != null && sharedPreferences != null)
-          // child: true
-          ? Scaffold(
-              body: PageStorage(
-                bucket: _pageStorageBucket,
-                child: PageView(
-                  children: pages,
-                  controller: pageController,
-                  onPageChanged: onPageChanged,
-                ),
-              ),
-              bottomNavigationBar: BottomNavigationBar(
-                items: const [
-                  BottomNavigationBarItem(icon: Icon(Icons.access_alarm_rounded), label: 'PrayerTimes'),
-                  BottomNavigationBarItem(icon: ImageIcon(AssetImage("assets/images/qibla_32.png")), label: 'Qibla'),
-                  // BottomNavigationBarItem(icon: Text(String.fromCharCodes(Runes('\u{1F932}'))), label: 'Dua'),
-                  BottomNavigationBarItem(icon: ImageIcon(AssetImage("assets/images/dua_32.png")), label: 'Dua'),
-                ],
-                currentIndex: _currentIndex,
-                onTap: _onItemTapped,
-              ),
-            )
-          : Scaffold(
-              body: Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    const Spacer(),
-                    Text('ٱلسَّلَامُ عَلَيْكُمْ', style: Theme.of(context).textTheme.headline4),
-                    Text('وَرَحْمَةُ ٱللَّٰهِ', style: Theme.of(context).textTheme.headline4),
-                    Text('وَبَرَكَاتُهُ', style: Theme.of(context).textTheme.headline4),
-                    const Spacer(),
-                    Text(locationMessage),
-                    const SizedBox(height: 20),
-                    isPermanentlyDenied
-                        ? Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: <Widget>[
-                              ElevatedButton(
-                                // permission_handler
-                                onPressed: openApplicationSettings,
-                                child: const Text('Open App Settings'),
-                              ),
-                            ],
-                          )
-                        : const SizedBox.shrink(),
-                    const Spacer(),
-                  ],
-                ),
-              ),
-            ),
+      child: FutureBuilder(
+        future: _future,
+        builder: (BuildContext context, AsyncSnapshot<void> snapshot) {
+          return snapshot.hasData
+              ? Scaffold(
+                  body: PageStorage(
+                    bucket: _pageStorageBucket,
+                    child: PageView(
+                      children: pages,
+                      controller: pageController,
+                      onPageChanged: onPageChanged,
+                    ),
+                  ),
+                  bottomNavigationBar: BottomNavigationBar(
+                    items: const [
+                      BottomNavigationBarItem(icon: Icon(Icons.access_alarm_rounded), label: 'PrayerTimes'),
+                      BottomNavigationBarItem(icon: ImageIcon(AssetImage("assets/images/qibla_32.png")), label: 'Qibla'),
+                      BottomNavigationBarItem(icon: ImageIcon(AssetImage("assets/images/dua_32.png")), label: 'Dua'),
+                    ],
+                    currentIndex: _currentIndex,
+                    onTap: _onItemTapped,
+                  ),
+                )
+              : Scaffold(
+                  body: Column(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      const Text(
+                        'ٱلسَّلَامُ عَلَيْكُمْ \n وَرَحْمَةُ ٱللَّٰهِ \n وَبَرَكَاتُهُ',
+                        textDirection: TextDirection.rtl,
+                        style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, fontFamily: 'ScheherazadeNew'),
+                        textAlign: TextAlign.center,
+                      ),
+                      snapshot.hasError
+                          ? Column(
+                              children: [
+                                Text(snapshot.error.toString()),
+                                const SizedBox(height: 20),
+                                !isLocationServiceEnabled
+                                    ? ElevatedButton(
+                                        onPressed: openLocationSettings,
+                                        child: const Text('Open Location Settings'),
+                                      )
+                                    : (permissionStatus == LocationPermission.denied || permissionStatus == LocationPermission.deniedForever)
+                                        ? ElevatedButton(
+                                            // permission_handler
+                                            onPressed: openApplicationSettings,
+                                            child: const Text('Open App Settings'),
+                                          )
+                                        : const LinearProgressIndicator(),
+                              ],
+                            )
+                          : snapshot.connectionState == ConnectionState.waiting
+                              ? Column(
+                                  children: const [
+                                    Text('please Wait...\n'),
+                                    LinearProgressIndicator(),
+                                  ],
+                                )
+                              : const LinearProgressIndicator(),
+                    ],
+                  ),
+                );
+        },
+      ),
     );
   }
 
-  void openApplicationSettings() async {
-    await openAppSettings();
-    _updatePosition();
+  void openApplicationSettings() {
+    Geolocator.openAppSettings();
+  }
+
+  void openLocationSettings() {
+    Geolocator.openLocationSettings();
   }
 }

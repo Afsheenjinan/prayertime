@@ -16,10 +16,8 @@ class _DuaPageState extends State<DuaPage> {
   @override
   void initState() {
     super.initState();
-    isTransliterationChecked =
-        widget.sharedPreferences?.getBool('isTransliterationChecked') ?? true;
-    isTranslationChecked =
-        widget.sharedPreferences?.getBool('isTranslationChecked') ?? true;
+    isTransliterationChecked = widget.sharedPreferences?.getBool('isTransliterationChecked') ?? true;
+    isTranslationChecked = widget.sharedPreferences?.getBool('isTranslationChecked') ?? true;
   }
 
   @override
@@ -36,8 +34,7 @@ class _DuaPageState extends State<DuaPage> {
                   onChanged: (bool? value) {
                     setState(() {
                       isTransliterationChecked = value!;
-                      widget.sharedPreferences
-                          ?.setBool('isTransliterationChecked', value);
+                      widget.sharedPreferences?.setBool('isTransliterationChecked', value);
                     });
                   }),
               const Text('Transliteration'),
@@ -52,8 +49,7 @@ class _DuaPageState extends State<DuaPage> {
                   onChanged: (bool? value) {
                     setState(() {
                       isTranslationChecked = value!;
-                      widget.sharedPreferences
-                          ?.setBool('isTranslationChecked', value);
+                      widget.sharedPreferences?.setBool('isTranslationChecked', value);
                     });
                   }),
               const Text('Translation'),
@@ -70,8 +66,7 @@ class _DuaPageState extends State<DuaPage> {
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
                     Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 10, vertical: 5),
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
                       decoration: BoxDecoration(
                         color: Theme.of(context).primaryColorLight,
                         borderRadius: BorderRadius.circular(10),
